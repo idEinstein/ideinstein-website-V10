@@ -1,0 +1,224 @@
+[
+  {
+    "key": "NODE_ENV",
+    "value": "production",
+    "target": ["production", "preview"],
+    "type": "plain"
+  },
+  {
+    "key": "NEXTAUTH_SECRET",
+    "value": "IukNYbaVFDB76q7Md5QrneaNjXhwqTeWBYOqqLbeJOI",
+    "target": ["production", "preview"],
+    "type": "secret"
+  },
+  {
+    "key": "NEXTAUTH_URL",
+    "value": "https://your-domain.com",
+    "target": ["production"],
+    "type": "plain"
+  },
+  {
+    "key": "DATABASE_URL",
+    "value": "postgresql://postgres.ypugbrtmrcalhtzkogtz:4tdAt&$vL*?4Vy4@aws-1-eu-central-1.pooler.supabase.com:6543/postgres?sslmode=require",
+    "target": ["production", "preview"],
+    "type": "secret"
+  },
+  {
+    "key": "DIRECT_URL",
+    "value": "postgresql://postgres.ypugbrtmrcalhtzkogtz:4tdAt&$vL*?4Vy4@aws-1-eu-central-1.pooler.supabase.com:6543/postgres?sslmode=require",
+    "target": ["production"],
+    "type": "secret"
+  },
+  {
+    "key": "FORM_HMAC_SECRET",
+    "value": "316af5f6967144dce1a25e5e2476278b50764e9d52750719466af713e8b23e42",
+    "target": ["production", "preview"],
+    "type": "secret"
+  },
+  {
+    "key": "NEXT_PUBLIC_HMAC_SECRET",
+    "value": "8997c5e2a0071d0a2048e5fcef4b0b23f657c1b2fcd27bdc8f35fd657c7f4519",
+    "target": ["production", "preview"],
+    "type": "plain"
+  },
+  {
+    "key": "ENCRYPTION_KEY",
+    "value": "d5f76ea15e8e559c4c27b1846b338ad3b97ffaf447b0c3e94c1d466d0d65ae0c",
+    "target": ["production"],
+    "type": "secret"
+  },
+  {
+    "key": "ADMIN_PASSWORD",
+    "value": "M#RzTr^M$jz#$6Q$",
+    "target": ["production", "preview"],
+    "type": "secret"
+  },
+  {
+    "key": "RATE_PER_MIN",
+    "value": "60",
+    "target": ["production", "preview"],
+    "type": "plain"
+  },
+  {
+    "key": "SMTP_HOST",
+    "value": "smtp.gmail.com",
+    "target": ["production", "preview"],
+    "type": "plain"
+  },
+  {
+    "key": "SMTP_PORT",
+    "value": "587",
+    "target": ["production", "preview"],
+    "type": "plain"
+  },
+  {
+    "key": "SMTP_USER",
+    "value": "your-email@gmail.com",
+    "target": ["production", "preview"],
+    "type": "plain"
+  },
+  {
+    "key": "SMTP_PASS",
+    "value": "your-gmail-app-password",
+    "target": ["production", "preview"],
+    "type": "secret"
+  },
+  {
+    "key": "FROM_EMAIL",
+    "value": "noreply@ideinstein.com",
+    "target": ["production", "preview"],
+    "type": "plain"
+  },
+  {
+    "key": "ZOHO_DC",
+    "value": "in",
+    "target": ["production", "preview"],
+    "type": "plain"
+  },
+  {
+    "key": "ZOHO_CLIENT_ID",
+    "value": "1000.H0RYCXAUVICMC2L1E1TZ1A56S7VK1B",
+    "target": ["production", "preview"],
+    "type": "plain"
+  },
+  {
+    "key": "ZOHO_CLIENT_SECRET",
+    "value": "f2ef7627719c73fed7415954980e44e2ca4c689599",
+    "target": ["production", "preview"],
+    "type": "secret"
+  },
+  {
+    "key": "ZOHO_CRM_REFRESH_TOKEN",
+    "value": "1000.2a4dd530f3f8eb7e9b0a92db54a04c69.e8f1a5285bb6f698a63a1dd529ad33d6",
+    "target": ["production", "preview"],
+    "type": "secret"
+  },
+  {
+    "key": "ZOHO_BOOKINGS_REFRESH_TOKEN",
+    "value": "1000.bcaf8f5375d6d435637684a1e0e8e091.0be370c3965906a81154985a1d56adfa",
+    "target": ["production", "preview"],
+    "type": "secret"
+  },
+  {
+    "key": "ZOHO_WORKDRIVE_REFRESH_TOKEN",
+    "value": "1000.a634028d643513222cac64608bc6ac36.9218ed591b1f2aabbcd6e9866afbbb0c",
+    "target": ["production", "preview"],
+    "type": "secret"
+  },
+  {
+    "key": "ZOHO_CAMPAIGNS_REFRESH_TOKEN",
+    "value": "1000.0ad228bc4c506dc757985afb4156c2b7.aec36d1aab441f0a6bb8c75e98d56f82",
+    "target": ["production", "preview"],
+    "type": "secret"
+  },
+  {
+    "key": "ZOHO_BOOKS_REFRESH_TOKEN",
+    "value": "1000.c17625d2c55e20f176b6f8ed400b0f0a.14d1efa0a2d349d7a4be7ac77dfa6055",
+    "target": ["production", "preview"],
+    "type": "secret"
+  },
+  {
+    "key": "ZOHO_PROJECTS_REFRESH_TOKEN",
+    "value": "1000.dea43e0427baa09eba76ff31098e0645.8c4a7593b51f1ea71385a3f33c9a3b2c",
+    "target": ["production", "preview"],
+    "type": "secret"
+  },
+  {
+    "key": "CRM_BASE",
+    "value": "https://www.zohoapis.in/crm/v8",
+    "target": ["production", "preview"],
+    "type": "plain"
+  },
+  {
+    "key": "BOOKINGS_BASE",
+    "value": "https://www.zohoapis.in/bookings/v1",
+    "target": ["production", "preview"],
+    "type": "plain"
+  },
+  {
+    "key": "WD_BASE",
+    "value": "https://www.zohoapis.in/workdrive/api/v1",
+    "target": ["production", "preview"],
+    "type": "plain"
+  },
+  {
+    "key": "CAMPAIGNS_BASE",
+    "value": "https://campaigns.zoho.in/api/v1.1/json",
+    "target": ["production", "preview"],
+    "type": "plain"
+  },
+  {
+    "key": "WORKDRIVE_PARENT_FOLDER_ID",
+    "value": "df8395ea34156618b49a8b79da8667af19a31",
+    "target": ["production", "preview"],
+    "type": "plain"
+  },
+  {
+    "key": "BOOKINGS_WORKSPACE_ID",
+    "value": "331010000000039008",
+    "target": ["production", "preview"],
+    "type": "plain"
+  },
+  {
+    "key": "BOOKINGS_SERVICE_ID",
+    "value": "331010000000047002",
+    "target": ["production", "preview"],
+    "type": "plain"
+  },
+  {
+    "key": "BOOKINGS_STAFF_ID",
+    "value": "331010000000039006",
+    "target": ["production", "preview"],
+    "type": "plain"
+  },
+  {
+    "key": "BOOKINGS_TIME_ZONE",
+    "value": "Europe/Berlin",
+    "target": ["production", "preview"],
+    "type": "plain"
+  },
+  {
+    "key": "CAMPAIGNS_LIST_KEY",
+    "value": "3z9e9c5b0bb32dd6d9d772faa44d052a076aec8e251bcc8ae874d7d14e3c5dcfb8",
+    "target": ["production", "preview"],
+    "type": "plain"
+  },
+  {
+    "key": "ZOHO_ORG_ID",
+    "value": "60046481646",
+    "target": ["production", "preview"],
+    "type": "plain"
+  },
+  {
+    "key": "ZOHO_PROJECTS_PORTAL_ID",
+    "value": "60046541287",
+    "target": ["production", "preview"],
+    "type": "plain"
+  },
+  {
+    "key": "ALLOW_OAUTH_DEBUG",
+    "value": "false",
+    "target": ["production", "preview"],
+    "type": "plain"
+  }
+]
