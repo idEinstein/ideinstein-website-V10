@@ -121,76 +121,86 @@ export function AnimationProvider({ children }: { children: React.ReactNode }) {
     }));
   }, []);
 
-  // Device detection on client side
+  // Device detection on client side - Non-blocking
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
+    // Use requestIdleCallback for non-blocking device detection
     const detectDevice = () => {
-      const userAgent = navigator.userAgent.toLowerCase();
-      const isMobile = /mobile|android|iphone|ipad|phone/i.test(userAgent) || window.innerWidth < 768;
-      const isTablet = /tablet|ipad/i.test(userAgent) || (window.innerWidth >= 768 && window.innerWidth < 1024);
-      const isDesktop = !isMobile && !isTablet;
+      const performDetection = () => {
+        try {
+          const userAgent = navigator.userAgent.toLowerCase();
+          const isMobile = /mobile|android|iphone|ipad|phone/i.test(userAgent) || window.innerWidth < 768;
+          const isTablet = /tablet|ipad/i.test(userAgent) || (window.innerWidth >= 768 && window.innerWidth < 1024);
+          const isDesktop = !isMobile && !isTablet;
 
-      // Check for reduced motion preference
-      const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+          // Check for reduced motion preference
+          const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-      // Check for hardware acceleration support
-      const canvas = document.createElement('canvas');
-      const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-      const hardwareAcceleration = !!gl;
+          // Simplified hardware acceleration check
+          let hardwareAcceleration = true;
+          try {
+            const canvas = document.createElement('canvas');
+            const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+            hardwareAcceleration = !!gl;
+          } catch {
+            hardwareAcceleration = false;
+          }
 
-      // Detect connection speed (rough estimation)
-      const connection = (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection;
-      let connectionSpeed: 'slow' | 'fast' | 'unknown' = 'unknown';
-      
-      if (connection) {
-        const effectiveType = connection.effectiveType;
-        connectionSpeed = ['slow-2g', '2g', '3g'].includes(effectiveType) ? 'slow' : 'fast';
-      }
+          // Simplified connection detection
+          const connection = (navigator as any).connection;
+          let connectionSpeed: 'slow' | 'fast' | 'unknown' = 'unknown';
+          
+          if (connection) {
+            const effectiveType = connection.effectiveType;
+            connectionSpeed = ['slow-2g', '2g', '3g'].includes(effectiveType) ? 'slow' : 'fast';
+          }
 
-      // Battery API (if available)
-      let batteryLevel: number | undefined;
-      let isLowPowerMode = false;
+          const newDevice: DeviceCapabilities = {
+            isMobile,
+            isTablet,
+            isDesktop,
+            prefersReducedMotion,
+            isLowPowerMode: false, // Simplified - no battery API dependency
+            connectionSpeed,
+            hardwareAcceleration
+          };
 
-      if ('getBattery' in navigator) {
-        (navigator as any).getBattery().then((battery: any) => {
-          batteryLevel = battery.level;
-          isLowPowerMode = battery.level < 0.2; // Consider low power when battery < 20%
-        }).catch(() => {
-          // Battery API not available or blocked
-        });
-      }
-
-      const newDevice: DeviceCapabilities = {
-        isMobile,
-        isTablet,
-        isDesktop,
-        prefersReducedMotion,
-        batteryLevel,
-        isLowPowerMode,
-        connectionSpeed,
-        hardwareAcceleration
+          setDevice(newDevice);
+          autoAdjustAnimationQuality(newDevice);
+          setIsInitialized(true);
+        } catch (error) {
+          console.warn('Device detection error:', error);
+          setIsInitialized(true); // Still initialize with defaults
+        }
       };
 
-      setDevice(newDevice);
-
-      // Auto-adjust animation quality based on device capabilities
-      autoAdjustAnimationQuality(newDevice);
+      // Use requestIdleCallback if available, otherwise setTimeout with minimal delay
+      if ('requestIdleCallback' in window) {
+        requestIdleCallback(performDetection);
+      } else {
+        setTimeout(performDetection, 1);
+      }
     };
 
     detectDevice();
-    setIsInitialized(true);
 
-    // Listen for media query changes
+    // Lightweight event listeners
     const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const handleMediaChange = () => detectDevice();
+    const handleMediaChange = () => {
+      if ('requestIdleCallback' in window) {
+        requestIdleCallback(detectDevice);
+      } else {
+        setTimeout(detectDevice, 1);
+      }
+    };
     
     mediaQuery.addEventListener('change', handleMediaChange);
-    window.addEventListener('resize', detectDevice);
+    window.addEventListener('resize', handleMediaChange);
 
     return () => {
       mediaQuery.removeEventListener('change', handleMediaChange);
-      window.removeEventListener('resize', detectDevice);
+      window.removeEventListener('resize', handleMediaChange);
     };
   }, [autoAdjustAnimationQuality]);
 

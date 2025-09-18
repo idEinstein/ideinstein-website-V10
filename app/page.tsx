@@ -16,9 +16,17 @@ import { HeroErrorBoundary, ErrorBoundary } from '@/components/shared/ErrorBound
 
 export default function HomePage() {
   useEffect(() => {
-    initializeHomepageAnalytics()
-    initializePerformanceOptimizations()
-    // initializeIntegrationTesting() // Disabled - old A/B testing system
+    // Remove all initialization timeouts to prevent blocking
+    const initializeFunctions = async () => {
+      try {
+        initializeHomepageAnalytics()
+        initializePerformanceOptimizations()
+      } catch (error) {
+        console.warn('Analytics initialization error:', error)
+      }
+    }
+    
+    initializeFunctions()
   }, [])
 
   return (

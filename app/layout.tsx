@@ -12,7 +12,7 @@ import { ErrorBoundary } from '@/components/shared/ErrorBoundary'
 import StructuredData from '@/components/shared/StructuredData'
 import GoogleAnalytics from '@/components/analytics/GoogleAnalytics'
 import SessionProvider from '@/components/providers/SessionProvider'
-// import CookieConsent from '@/components/gdpr/CookieConsent' // Temporarily disabled to fix white page issue
+// Note: All cookie consent components permanently removed to prevent blocking issues
 import { META } from '@/lib/constants'
 
 const inter = Inter({ subsets: ['latin'] })
