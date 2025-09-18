@@ -12,7 +12,7 @@ import { ErrorBoundary } from '@/components/shared/ErrorBoundary'
 import StructuredData from '@/components/shared/StructuredData'
 import GoogleAnalytics from '@/components/analytics/GoogleAnalytics'
 import SessionProvider from '@/components/providers/SessionProvider'
-// Note: All cookie consent components permanently removed to prevent blocking issues
+import CookieConsent from '@/components/shared/CookieConsent'
 import { META } from '@/lib/constants'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -46,7 +46,7 @@ export default function RootLayout({
                   </main>
                   <Footer />
                   <FloatingContactHub />
-                  {/* <CookieConsent /> */} {/* Temporarily disabled to fix white page issue */}
+                  <CookieConsent language="en" />
                 </div>
               </AudienceProvider>
             </AnimationProvider>
