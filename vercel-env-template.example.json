@@ -1,0 +1,164 @@
+[
+  {
+    "key": "NEXTAUTH_SECRET",
+    "value": "[GENERATE_WITH_openssl_rand_base64_32]",
+    "target": ["production", "preview"],
+    "type": "secret"
+  },
+  {
+    "key": "FORM_HMAC_SECRET",
+    "value": "[GENERATE_64_CHAR_HEX_SECRET]",
+    "target": ["production", "preview"],
+    "type": "secret"
+  },
+  {
+    "key": "NEXT_PUBLIC_HMAC_SECRET",
+    "value": "[GENERATE_64_CHAR_HEX_SECRET]",
+    "target": ["production", "preview"],
+    "type": "plain"
+  },
+  {
+    "key": "ENCRYPTION_KEY",
+    "value": "[GENERATE_64_CHAR_HEX_ENCRYPTION_KEY]",
+    "target": ["production", "preview"],
+    "type": "secret"
+  },
+  {
+    "key": "ADMIN_PASSWORD",
+    "value": "[SET_STRONG_ADMIN_PASSWORD]",
+    "target": ["production", "preview"],
+    "type": "plain"
+  },
+  {
+    "key": "ADMIN_PASSWORD_HASH",
+    "value": "[BCRYPT_HASH_OF_ADMIN_PASSWORD]",
+    "target": ["production", "preview"],
+    "type": "secret"
+  },
+  {
+    "key": "GITHUB_WEBHOOK_SECRET",
+    "value": "[SET_IN_GITHUB_WEBHOOK_SETTINGS]",
+    "target": ["production", "preview"],
+    "type": "secret"
+  },
+  {
+    "key": "DATABASE_URL",
+    "value": "postgresql://user:password@host:5432/database?sslmode=require",
+    "target": ["production", "preview"],
+    "type": "secret"
+  },
+  {
+    "key": "DIRECT_URL",
+    "value": "postgresql://user:password@host:5432/database?sslmode=require",
+    "target": ["production", "preview"],
+    "type": "secret"
+  },
+  {
+    "key": "SMTP_HOST",
+    "value": "smtp.gmail.com",
+    "target": ["production", "preview"],
+    "type": "plain"
+  },
+  {
+    "key": "SMTP_PORT",
+    "value": "587",
+    "target": ["production", "preview"],
+    "type": "plain"
+  },
+  {
+    "key": "SMTP_USER",
+    "value": "[YOUR_SMTP_USERNAME]",
+    "target": ["production", "preview"],
+    "type": "plain"
+  },
+  {
+    "key": "SMTP_PASS",
+    "value": "[YOUR_SMTP_PASSWORD]",
+    "target": ["production", "preview"],
+    "type": "secret"
+  },
+  {
+    "key": "FROM_EMAIL",
+    "value": "noreply@your-domain.com",
+    "target": ["production", "preview"],
+    "type": "plain"
+  },
+  {
+    "key": "ZOHO_CLIENT_ID",
+    "value": "[SET_FROM_ZOHO_DEVELOPER_CONSOLE]",
+    "target": ["production", "preview"],
+    "type": "plain"
+  },
+  {
+    "key": "ZOHO_CLIENT_SECRET",
+    "value": "[SET_FROM_ZOHO_DEVELOPER_CONSOLE]",
+    "target": ["production", "preview"],
+    "type": "secret"
+  },
+  {
+    "key": "ZOHO_CRM_REFRESH",
+    "value": "[GENERATE_FROM_ZOHO_OAUTH]",
+    "target": ["production", "preview"],
+    "type": "plain"
+  },
+  {
+    "key": "ZOHO_BOOKINGS_REFRESH",
+    "value": "[GENERATE_FROM_ZOHO_OAUTH]",
+    "target": ["production", "preview"],
+    "type": "plain"
+  },
+  {
+    "key": "ZOHO_WORKDRIVE_REFRESH",
+    "value": "[GENERATE_FROM_ZOHO_OAUTH]",
+    "target": ["production", "preview"],
+    "type": "plain"
+  },
+  {
+    "key": "ZOHO_CAMPAIGNS_REFRESH",
+    "value": "[GENERATE_FROM_ZOHO_OAUTH]",
+    "target": ["production", "preview"],
+    "type": "plain"
+  },
+  {
+    "key": "ZOHO_REGION",
+    "value": "com",
+    "target": ["production", "preview"],
+    "type": "plain"
+  },
+  {
+    "key": "VERCEL_TOKEN",
+    "value": "[GET_FROM_VERCEL_SETTINGS]",
+    "target": ["production", "preview"],
+    "type": "plain"
+  },
+  {
+    "key": "VERCEL_PROJECT_ID",
+    "value": "[GET_FROM_VERCEL_PROJECT_SETTINGS]",
+    "target": ["production", "preview"],
+    "type": "plain"
+  },
+  {
+    "key": "VERCEL_TEAM_ID",
+    "value": "[GET_FROM_VERCEL_TEAM_SETTINGS]",
+    "target": ["production", "preview"],
+    "type": "plain"
+  },
+  {
+    "key": "VERCEL_ORG_ID",
+    "value": "[GET_FROM_VERCEL_ORG_SETTINGS]",
+    "target": ["production", "preview"],
+    "type": "plain"
+  },
+  {
+    "key": "NODE_ENV",
+    "value": "production",
+    "target": ["production", "preview"],
+    "type": "plain"
+  },
+  {
+    "key": "RATE_PER_MIN",
+    "value": "60",
+    "target": ["production", "preview"],
+    "type": "plain"
+  }
+]
