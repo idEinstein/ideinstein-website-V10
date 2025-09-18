@@ -30,6 +30,8 @@ yarn-error.log*
 .env.production.local
 .env.secrets
 *.env.secrets
+vercel-env-template.json
+*.env.template
 
 # Vercel
 .vercel
