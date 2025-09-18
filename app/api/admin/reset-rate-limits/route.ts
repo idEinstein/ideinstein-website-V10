@@ -4,14 +4,36 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 import { withAdminAuth } from '@/lib/auth/admin-auth';
 import { resetRateLimit, generateRateLimitKey, resetAllRateLimits } from '@/lib/security/rate-limit';
 
+// Rate limit reset validation schema
+const rateLimitResetSchema = z.object({
+  action: z.enum(['contact', 'ip', 'all']).default('all'),
+  ip: z.string().ip().optional(),
+  reason: z.string().min(1).max(200).optional()
+});
+
 export const POST = withAdminAuth(async (request: NextRequest) => {
   try {
+    // Parse and validate query parameters
     const { searchParams } = new URL(request.url);
-    const action = searchParams.get('action') || 'all';
-    const ip = searchParams.get('ip');
+    const queryParams = Object.fromEntries(searchParams.entries());
+    
+    const validationResult = rateLimitResetSchema.safeParse(queryParams);
+    if (!validationResult.success) {
+      return NextResponse.json(
+        { 
+          success: false,
+          error: 'Invalid parameters',
+          details: validationResult.error.flatten()
+        },
+        { status: 400 }
+      );
+    }
+    
+    const { action, ip, reason } = validationResult.data;
     
     let resetCount = 0;
     

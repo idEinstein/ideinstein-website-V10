@@ -3,12 +3,40 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { cacheService } from '@/lib/cache-service'
 import { auditLogger } from '@/lib/audit-service'
+import { z } from 'zod'
+
+// Invoice query validation schema
+const invoiceQuerySchema = z.object({
+  status: z.enum(['all', 'paid', 'pending', 'overdue', 'draft']).optional().default('all'),
+  limit: z.string().transform(Number).pipe(z.number().min(1).max(100)).optional().default('50'),
+  page: z.string().transform(Number).pipe(z.number().min(1)).optional().default('1'),
+  dateFrom: z.string().optional(),
+  dateTo: z.string().optional(),
+  includeDetails: z.string().transform(val => val === 'true').pipe(z.boolean()).optional().default('true')
+});
 
 
 export async function GET(request: NextRequest) {
   console.log('🔍 Billing/Invoices API - GET called')
   
   try {
+    // Validate query parameters
+    const { searchParams } = new URL(request.url);
+    const queryParams = Object.fromEntries(searchParams.entries());
+    
+    const validationResult = invoiceQuerySchema.safeParse(queryParams);
+    if (!validationResult.success) {
+      return NextResponse.json(
+        { 
+          success: false,
+          error: 'Invalid query parameters',
+          details: validationResult.error.flatten()
+        },
+        { status: 400 }
+      );
+    }
+    
+    const { status, limit, page, dateFrom, dateTo, includeDetails } = validationResult.data;
     // Get user session
     const session = await getServerSession(authOptions)
     if (!session?.user?.email) {

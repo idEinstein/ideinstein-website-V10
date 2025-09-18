@@ -1,7 +1,34 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 
-export async function GET(__request: NextRequest) {
+// Services query validation schema
+const servicesQuerySchema = z.object({
+  category: z.string().optional(),
+  active: z.string().transform(val => val === 'true').pipe(z.boolean()).optional(),
+  includeFeatures: z.string().transform(val => val === 'true').pipe(z.boolean()).optional().default('true'),
+  limit: z.string().transform(Number).pipe(z.number().min(1).max(100)).optional(),
+  page: z.string().transform(Number).pipe(z.number().min(1)).optional().default('1')
+});
+
+export async function GET(request: NextRequest) {
   try {
+    // Validate query parameters
+    const { searchParams } = new URL(request.url);
+    const queryParams = Object.fromEntries(searchParams.entries());
+    
+    const validationResult = servicesQuerySchema.safeParse(queryParams);
+    if (!validationResult.success) {
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: 'Invalid query parameters',
+          details: validationResult.error.flatten()
+        },
+        { status: 400 }
+      );
+    }
+    
+    const { category, active, includeFeatures, limit, page } = validationResult.data;
     // TODO: Fetch from database
     // const services = await db.services.findMany({
     //   where: { active: true },

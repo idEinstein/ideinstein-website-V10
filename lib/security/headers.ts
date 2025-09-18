@@ -15,6 +15,10 @@ export interface SecurityHeadersConfig {
   contentTypeOptions: boolean;
   referrerPolicy: string;
   permissionsPolicy: string[];
+  // Enhanced security headers
+  crossOriginEmbedderPolicy: boolean;
+  crossOriginOpenerPolicy: boolean;
+  crossOriginResourcePolicy: 'same-origin' | 'same-site' | 'cross-origin';
 }
 
 /**
@@ -40,8 +44,16 @@ export function getSecurityHeadersConfig(): SecurityHeadersConfig {
       'bluetooth=()',
       'magnetometer=()',
       'gyroscope=()',
-      'accelerometer=()'
-    ]
+      'accelerometer=()',
+      'autoplay=()',
+      'fullscreen=(self)',
+      'picture-in-picture=()',
+      'web-share=()'
+    ],
+    // Enhanced security headers
+    crossOriginEmbedderPolicy: true,
+    crossOriginOpenerPolicy: true,
+    crossOriginResourcePolicy: 'same-origin'
   };
 }
 
@@ -85,13 +97,27 @@ export function applySecurityHeaders(
   response.headers.set('X-DNS-Prefetch-Control', 'on');
 
   // Cross-Origin-Embedder-Policy - Enhanced security for cross-origin isolation
-  response.headers.set('Cross-Origin-Embedder-Policy', 'require-corp');
+  if (config.crossOriginEmbedderPolicy) {
+    response.headers.set('Cross-Origin-Embedder-Policy', 'require-corp');
+  }
 
   // Cross-Origin-Opener-Policy - Prevent cross-origin attacks
-  response.headers.set('Cross-Origin-Opener-Policy', 'same-origin');
+  if (config.crossOriginOpenerPolicy) {
+    response.headers.set('Cross-Origin-Opener-Policy', 'same-origin');
+  }
 
   // Cross-Origin-Resource-Policy - Control cross-origin resource sharing
-  response.headers.set('Cross-Origin-Resource-Policy', 'same-origin');
+  response.headers.set('Cross-Origin-Resource-Policy', config.crossOriginResourcePolicy);
+
+  // Additional security headers for enhanced protection
+  response.headers.set('X-Permitted-Cross-Domain-Policies', 'none');
+  response.headers.set('X-Download-Options', 'noopen');
+  
+  // Clear-Site-Data header for logout/security actions (conditionally)
+  if (isProduction) {
+    // This would be set conditionally on logout or security incidents
+    // response.headers.set('Clear-Site-Data', '"cache", "cookies", "storage"');
+  }
 
   return response;
 }
