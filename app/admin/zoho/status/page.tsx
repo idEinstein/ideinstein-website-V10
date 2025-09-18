@@ -102,18 +102,11 @@ export default function ZohoStatusDashboard() {
         console.log('🔑 Using stored auth token for request');
       } else {
         console.warn('⚠️ No auth token found in localStorage');
-        // Try with query parameter as fallback for testing
-        const adminPassword = 'admin123'; // Default password
-        headers['X-Admin-Fallback'] = adminPassword;
+        // No fallback - user should authenticate properly
       }
       
-      // Construct URL with fallback authentication
-      let apiUrl = '/api/zoho/status';
-      if (!authToken) {
-        // If no auth token, use query parameter as fallback
-        apiUrl += '?admin_password=admin123';
-        console.log('🔍 Using query parameter fallback authentication');
-      }
+      // Construct API URL
+      const apiUrl = '/api/zoho/status';
       
       const response = await fetch(apiUrl, {
         method: 'GET',

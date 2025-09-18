@@ -42,21 +42,32 @@ export default function AdminAuth({ children }: AdminAuthProps) {
     setError('');
 
     try {
-      // Use the same default as the server-side auth
-      const adminPassword = 'admin123'; // This should match ADMIN_PASSWORD default
-      
-      if (password === adminPassword) {
-        // Set authentication token with 24-hour expiry
-        const expiryTime = Date.now() + (24 * 60 * 60 * 1000); // 24 hours
-        const authToken = btoa(`admin:${adminPassword}`); // Token format expected by server
-        
-        localStorage.setItem('admin_auth_token', authToken);
-        localStorage.setItem('admin_auth_expiry', expiryTime.toString());
-        
-        setIsAuthenticated(true);
-        setPassword('');
+      // Try to authenticate with server to get proper validation
+      const response = await fetch('/api/admin/validate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ password }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          // Set authentication token with 24-hour expiry
+          const expiryTime = Date.now() + (24 * 60 * 60 * 1000); // 24 hours
+          const authToken = btoa(`admin:${password}`); // Token format expected by server
+          
+          localStorage.setItem('admin_auth_token', authToken);
+          localStorage.setItem('admin_auth_expiry', expiryTime.toString());
+          
+          setIsAuthenticated(true);
+          setPassword('');
+        } else {
+          setError('Invalid password. Please try again.');
+        }
       } else {
-        setError('Invalid password. Please try again.');
+        setError('Authentication failed. Please try again.');
       }
     } catch (err) {
       setError('Authentication failed. Please try again.');
@@ -136,15 +147,17 @@ export default function AdminAuth({ children }: AdminAuthProps) {
                 </Button>
               </form>
 
-              <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-                <h4 className="text-sm font-medium text-blue-800 mb-2">Default Password</h4>
-                <p className="text-sm text-blue-700">
-                  For development: <code className="bg-blue-100 px-2 py-1 rounded">admin123</code>
-                </p>
-                <p className="text-xs text-blue-600 mt-2">
-                  ⚠️ Change this password before going to production!
-                </p>
-              </div>
+              {process.env.NODE_ENV !== 'production' && (
+                <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+                  <h4 className="text-sm font-medium text-blue-800 mb-2">Default Password</h4>
+                  <p className="text-sm text-blue-700">
+                    For development: <code className="bg-blue-100 px-2 py-1 rounded">admin123</code>
+                  </p>
+                  <p className="text-xs text-blue-600 mt-2">
+                    ⚠️ Change this password before going to production!
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
