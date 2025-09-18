@@ -366,9 +366,4 @@ export default function CookieConsent({ language = 'en' }: CookieConsentProps) {
   );
 }
 
-// Global types for Google Analytics
-declare global {
-  interface Window {
-    gtag?: (...args: any[]) => void;
-  }
-}
+// Remove the global gtag declaration since it's already defined in lib/analytics.ts

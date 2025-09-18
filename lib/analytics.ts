@@ -211,7 +211,7 @@ export const ecommerce = {
 // Declare gtag for TypeScript
 declare global {
   interface Window {
-    gtag: (
+    gtag?: (
       command: 'config' | 'event' | 'consent',
       targetIdOrAction?: string,
       config?: {
