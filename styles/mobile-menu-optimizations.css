@@ -1,0 +1,86 @@
+/* Mobile Menu Performance Optimizations */
+
+/* Smooth scrolling for mobile menu navigation */
+.mobile-menu-navigation {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* Optimize touch targets for mobile */
+@media (max-width: 1024px) {
+  .mobile-menu-item {
+    min-height: 44px; /* WCAG minimum touch target */
+    touch-action: manipulation; /* Prevent zoom on double-tap */
+  }
+  
+  .mobile-submenu-item {
+    min-height: 40px;
+    touch-action: manipulation;
+  }
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  .mobile-menu * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Optimize for small screens */
+@media (max-height: 600px) {
+  .mobile-menu-header {
+    height: 48px;
+  }
+  
+  .mobile-menu-actions {
+    height: 64px;
+    padding: 8px 16px;
+  }
+  
+  .mobile-menu-item {
+    padding: 8px 12px;
+    min-height: 40px;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .mobile-menu {
+    border: 2px solid;
+  }
+  
+  .mobile-menu-item {
+    border: 1px solid;
+  }
+}
+
+/* Focus management for accessibility */
+.mobile-menu-item:focus-visible,
+.mobile-submenu-item:focus-visible {
+  outline: 2px solid #fbbf24;
+  outline-offset: 2px;
+}
+
+/* Prevent text selection on menu items */
+.mobile-menu-item,
+.mobile-submenu-item {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Optimize backdrop blur for performance */
+.mobile-menu-backdrop {
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+/* Ensure proper stacking context */
+.mobile-menu {
+  isolation: isolate;
+  contain: layout style paint;
+}

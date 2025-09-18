@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UTM Debug Tool</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; background: #f9f9f9; border-radius: 5px; }
+        .utm-value { background: #e8f5e8; padding: 5px; margin: 2px 0; border-radius: 3px; }
+        .empty { background: #ffe8e8; }
+        a { display: inline-block; margin: 10px 5px; padding: 10px 15px; background: #007bff; color: white; text-decoration: none; border-radius: 5px; }
+        a:hover { background: #0056b3; }
+        button { background: #28a745; color: white; border: none; padding: 10px 15px; margin: 5px; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #218838; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 5px; overflow-x: auto; }
+        .status { padding: 10px; border-radius: 5px; margin: 10px 0; }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .warning { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    </style>
+</head>
+<body>
+    <h1>🔍 UTM Data Capture Debug Tool</h1>
+    
+    <div class="section">
+        <h2>Current URL Information</h2>
+        <div id="url-info"></div>
+    </div>
+    
+    <div class="section">
+        <h2>Current UTM Parameters</h2>
+        <div id="current-utm"></div>
+    </div>
+    
+    <div class="section">
+        <h2>Stored UTM Data (localStorage)</h2>
+        <div id="stored-utm"></div>
+    </div>
+    
+    <div class="section">
+        <h2>Test UTM URLs</h2>
+        <a href="?utm_source=google&utm_medium=cpc&utm_campaign=consultation&utm_term=3d-printing&utm_content=form-test">Google Ads Test</a>
+        <a href="?utm_source=facebook&utm_medium=social&utm_campaign=awareness&utm_content=consultation-form">Facebook Test</a>
+        <a href="?utm_source=email&utm_medium=newsletter&utm_campaign=december&utm_content=consultation-cta">Email Test</a>
+        <a href="?utm_source=sarva_test&utm_medium=manual&utm_campaign=debug&utm_term=consultation&utm_content=debug_form">Sarva Debug Test</a>
+        <a href="?">Clear UTM</a>
+    </div>
+    
+    <div class="section">
+        <h2>Actions</h2>
+        <button onclick="testTracking()">Test Tracking Function</button>
+        <button onclick="clearStorage()">Clear Storage</button>
+        <button onclick="goToForm()">Go to Consultation Form</button>
+        <button onclick="goToFormWithUTM()">Go to Form with UTM</button>
+    </div>
+    
+    <div class="section">
+        <h2>Tracking Function Test Result</h2>
+        <div id="tracking-result"></div>
+    </div>
+
+    <div class="section">
+        <h2>Instructions</h2>
+        <ol>
+            <li><strong>Click a test UTM link above</strong> - This will add UTM parameters to the URL</li>
+            <li><strong>Check that "Current UTM Parameters" shows data</strong> - Should not be empty</li>
+            <li><strong>Click "Test Tracking Function"</strong> - This simulates what the form does</li>
+            <li><strong>Go to the consultation form</strong> - Use "Go to Form with UTM" button</li>
+            <li><strong>Submit the form</strong> - The UTM data should be included</li>
+        </ol>
+    </div>
+
+    <script>
+        function updateDisplay() {
+            // Current URL info
+            document.getElementById('url-info').innerHTML = `
+                <div class="utm-value">Full URL: ${window.location.href}</div>
+                <div class="utm-value">Search params: ${window.location.search || 'No parameters'}</div>
+            `;
+            
+            // Current UTM parameters
+            const params = new URLSearchParams(window.location.search);
+            const utmParams = {
+                utm_source: params.get('utm_source'),
+                utm_medium: params.get('utm_medium'),
+                utm_campaign: params.get('utm_campaign'),
+                utm_term: params.get('utm_term'),
+                utm_content: params.get('utm_content')
+            };
+            
+            let currentUtmHtml = '';
+            for (const [key, value] of Object.entries(utmParams)) {
+                const isEmpty = !value;
+                currentUtmHtml += `<div class="utm-value ${isEmpty ? 'empty' : ''}">${key}: ${value || 'EMPTY'}</div>`;
+            }
+            document.getElementById('current-utm').innerHTML = currentUtmHtml;
+            
+            // Stored UTM data
+            const stored = localStorage.getItem('first_utm');
+            if (stored) {
+                try {
+                    const parsedStored = JSON.parse(stored);
+                    let storedHtml = '';
+                    for (const [key, value] of Object.entries(parsedStored)) {
+                        const isEmpty = !value;
+                        storedHtml += `<div class="utm-value ${isEmpty ? 'empty' : ''}">${key}: ${value || 'EMPTY'}</div>`;
+                    }
+                    document.getElementById('stored-utm').innerHTML = storedHtml;
+                } catch (e) {
+                    document.getElementById('stored-utm').innerHTML = '<div class="error">Error parsing stored UTM data</div>';
+                }
+            } else {
+                document.getElementById('stored-utm').innerHTML = '<div class="warning">No UTM data stored yet</div>';
+            }
+        }
+        
+        function testTracking() {
+            try {
+                // Simulate the getTracking function
+                const params = new URLSearchParams(window.location.search);
+                const current = {
+                    utm_source: params.get('utm_source') || undefined,
+                    utm_medium: params.get('utm_medium') || undefined,
+                    utm_campaign: params.get('utm_campaign') || undefined,
+                    utm_term: params.get('utm_term') || undefined,
+                    utm_content: params.get('utm_content') || undefined
+                };
+                
+                const hasUTM = Object.values(current).some(Boolean);
+                
+                const lsKey = 'first_utm';
+                if (hasUTM && !localStorage.getItem(lsKey)) {
+                    localStorage.setItem(lsKey, JSON.stringify(current));
+                }
+                
+                const firstUtm = localStorage.getItem(lsKey);
+                const utm = firstUtm ? JSON.parse(firstUtm) : current;
+                
+                const result = {
+                    submission_id: 'test-' + Date.now(),
+                    lead_source: 'Consultation Booking',
+                    ...utm,
+                    referrer: document.referrer || undefined,
+                    page: window.location.pathname
+                };
+                
+                document.getElementById('tracking-result').innerHTML = `
+                    <div class="success">✅ Tracking function works!</div>
+                    <pre>${JSON.stringify(result, null, 2)}</pre>
+                `;
+                
+                updateDisplay(); // Refresh stored UTM display
+            } catch (error) {
+                document.getElementById('tracking-result').innerHTML = `
+                    <div class="error">❌ Error: ${error.message}</div>
+                `;
+            }
+        }
+        
+        function clearStorage() {
+            localStorage.removeItem('first_utm');
+            localStorage.removeItem('submission_id');
+            sessionStorage.clear();
+            updateDisplay();
+            document.getElementById('tracking-result').innerHTML = '<div class="warning">Storage cleared!</div>';
+        }
+        
+        function goToForm() {
+            window.location.href = '/consultation';
+        }
+        
+        function goToFormWithUTM() {
+            const currentParams = window.location.search;
+            if (currentParams) {
+                window.location.href = '/consultation' + currentParams;
+            } else {
+                window.location.href = '/consultation?utm_source=debug&utm_medium=tool&utm_campaign=sarva&utm_content=test';
+            }
+        }
+        
+        // Update display on page load and when URL changes
+        updateDisplay();
+        window.addEventListener('popstate', updateDisplay);
+    </script>
+</body>
+</html>

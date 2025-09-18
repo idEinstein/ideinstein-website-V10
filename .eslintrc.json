@@ -1,0 +1,25 @@
+{
+  "extends": [
+    "next/core-web-vitals"
+  ],
+  "rules": {
+    "react/no-unescaped-entities": "off",
+    "no-console": "off",
+    "no-debugger": "error",
+    "prefer-const": "error"
+  },
+  "ignorePatterns": [
+    "node_modules/",
+    ".next/",
+    "out/",
+    "build/",
+    "dist/",
+    "coverage/",
+    "backups/",
+    "_archive/",
+    "lib/1.Archive/",
+    "app/api/1.Archive/",
+    "Main files for future reference/",
+    "scripts/archive/"
+  ]
+}

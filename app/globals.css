@@ -1,0 +1,356 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* IdEinstein Brand Colors */
+    --primary: #1E40AF;
+    --primary-foreground: #FFFFFF;
+    --secondary: #F59E0B;
+    --secondary-foreground: #FFFFFF;
+    
+    /* Supporting Colors */
+    --blue-50: #EFF6FF;
+    --blue-100: #DBEAFE;
+    --blue-600: #2563EB;
+    --blue-800: #1E3A8A;
+    --blue-900: #1E3A8A;
+    
+    --gold-50: #FFFBEB;
+    --gold-100: #FEF3C7;
+    --gold-600: #D97706;
+    
+    /* Neutral Colors */
+    --background: #FFFFFF;
+    --foreground: #111827;
+    --muted: #F9FAFB;
+    --muted-foreground: #6B7280;
+    --border: #E5E7EB;
+    --input: #E5E7EB;
+    --ring: #1E40AF;
+  }
+}
+ 
+@layer base {
+  :root {
+    --background: 210 40% 98%;
+    --foreground: 222.2 84% 4.9%;
+ 
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+ 
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+ 
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+ 
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+ 
+    --primary: 216 87% 40%;
+    --primary-foreground: 0 0% 100%;
+ 
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+ 
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+ 
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+ 
+    --ring: 215 20.2% 65.1%;
+    --radius: 0.5rem;
+  }
+}
+ 
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* 3D Flip Card Styles */
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+.preserve-3d {
+  transform-style: preserve-3d;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+}
+
+.rotate-y-180 {
+  transform: rotateY(180deg);
+}
+
+/* Line clamp utility */
+.line-clamp-4 {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+::selection {
+  background-color: #1E40AF;
+  color: white;
+}
+
+/* Custom Calendar Styles */
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0;
+  width: 100%;
+}
+
+.calendar-cell {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Modal positioning fix for tall content */
+@layer components {
+  .dialog-content-scrollable {
+    position: fixed !important;
+    top: 2rem !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    max-height: calc(100vh - 4rem) !important;
+    overflow-y: auto !important;
+    margin: 0 !important;
+  }
+  
+  /* Ensure modal content is always visible */
+  [data-radix-dialog-content] {
+    max-height: calc(100vh - 4rem);
+    overflow-y: auto;
+  }
+}
+/* Service Pages Mobile Optimizations */
+@media (max-width: 640px) {
+  .service-hero-title {
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+  
+  .service-process-step {
+    scroll-snap-align: start;
+  }
+  
+  .service-technical-content {
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+  
+  .service-tag {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+  }
+  
+  .service-button-mobile {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Touch optimization for service elements */
+@media (hover: none) and (pointer: coarse) {
+  .service-interactive {
+    transform: scale(1);
+    transition: transform 0.1s ease;
+  }
+  
+  .service-interactive:active {
+    transform: scale(0.98);
+  }
+}
+
+
+/* Oval Label Height Improvements - SMALLER VERSION */
+.oval-label-sm {
+  @apply px-3 py-1 rounded-full text-sm font-medium;
+}
+
+.oval-label-xs {
+  @apply px-2 py-0.5 rounded-full text-xs font-medium;
+}
+
+/* Service page specific oval labels - COMPACT */
+.service-step-label {
+  @apply px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium;
+}
+
+.service-tag-label {
+  @apply px-2 py-0.5 rounded-full text-xs font-medium border;
+}
+
+/* Responsive oval label heights - SMALLER */
+@media (max-width: 640px) {
+  .oval-label-responsive {
+    @apply px-2 py-0.5;
+  }
+}
+
+@media (min-width: 641px) {
+  .oval-label-responsive {
+    @apply px-3 py-1;
+  }
+}
+/* Service page specific oval labels */
+.service-step-label {
+  @apply px-4 py-2 bg-primary/10 text-primary rounded-full text-sm font-medium;
+}
+
+.service-tag-label {
+  @apply px-3 py-1.5 rounded-full text-xs font-medium border;
+}
+
+/* Responsive oval label heights */
+@media (max-width: 640px) {
+  .oval-label-responsive {
+    @apply px-3 py-1.5;
+  }
+}
+
+@media (min-width: 641px) {
+  .oval-label-responsive {
+    @apply px-4 py-2;
+  }
+}
+
+/* Section Oval Labels - Specific Fix */
+/* Only for the 3 main section headings that were too big on mobile */
+.section-oval-label {
+  @apply px-2 py-0.5 rounded-full text-xs font-medium;
+}
+
+.section-oval-label-sm {
+  @apply px-3 py-1 rounded-full text-sm font-medium;
+}
+
+/* Mobile-specific section label sizing */
+@media (max-width: 640px) {
+  .section-oval-professional {
+    @apply px-2 py-0.5 text-xs;
+  }
+  
+  .section-oval-project-value {
+    @apply px-2 py-0.5 text-xs;
+  }
+  
+  .section-oval-ready-to-start {
+    @apply px-3 py-1.5 text-base;
+  }
+}
+
+@media (min-width: 641px) {
+  .section-oval-professional {
+    @apply px-3 py-1 text-sm;
+  }
+  
+  .section-oval-project-value {
+    @apply px-3 py-1 text-sm;
+  }
+  
+  .section-oval-ready-to-start {
+    @apply px-4 py-2 text-lg;
+  }
+}
+
+
+/* Compact Section Spacing Utilities */
+.section-compact {
+  @apply py-4 sm:py-6 lg:py-8;
+}
+
+.section-tight {
+  @apply py-2 sm:py-3 lg:py-4;
+}
+
+.section-gap-reduce {
+  @apply -mt-4 sm:-mt-6 lg:-mt-8;
+}
+
+.card-grid-compact {
+  @apply gap-3 sm:gap-4 lg:gap-6;
+}
+
+.content-flow-tight {
+  @apply space-y-2 sm:space-y-3 lg:space-y-4;
+}
+
+/* Mobile Safe Area Utilities */
+.pt-safe-top {
+  padding-top: env(safe-area-inset-top, 1rem);
+}
+
+@media (max-width: 640px) {
+  .pt-safe-top {
+    padding-top: max(env(safe-area-inset-top, 0px), 1.5rem);
+  }
+}
+
+/* Hero Section Mobile Fixes */
+@media (max-width: 640px) {
+  .hero-mobile-fix {
+    padding-top: max(env(safe-area-inset-top, 0px), 2rem);
+    min-height: calc(100vh - env(safe-area-inset-top, 0px));
+  }
+}
+
+/* Hub & Spoke Section Bottom Padding Fix */
+.hub-spoke-bottom-fix {
+  padding-bottom: 2rem;
+}
+
+@media (min-width: 640px) {
+  .hub-spoke-bottom-fix {
+    padding-bottom: 3rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .hub-spoke-bottom-fix {
+    padding-bottom: 4rem;
+  }
+}
+
+/* Mobile Hero Fix */
+@media (max-width: 640px) {
+  .hero-mobile-safe {
+    padding-top: max(env(safe-area-inset-top, 0px), 6rem);
+  }
+}
+
+/* Hub & Spoke Bottom Padding Fix */
+.hub-spoke-container {
+  padding-bottom: 2rem;
+}
+
+@media (min-width: 640px) {
+  .hub-spoke-container {
+    padding-bottom: 2.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .hub-spoke-container {
+    padding-bottom: 3rem;
+  }
+}
