@@ -51,7 +51,10 @@ export function getCSPDirectives(nonce: string, isDevelopment: boolean = false, 
         'https://analytics.google.com'
       ]),
       // Allow localhost in development
-      ...(isDevelopment ? ["'unsafe-eval'", 'localhost:*', 'ws:', 'wss:'] : [])
+      ...(isDevelopment ? ["'unsafe-eval'", 'localhost:*', 'ws:', 'wss:'] : []),
+      // TEMPORARY: Allow unsafe-inline for application/ld+json scripts
+      // This should be removed once all inline scripts use nonces
+      "'unsafe-inline'"
     ],
     'style-src': [
       "'self'",
