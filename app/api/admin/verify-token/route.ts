@@ -8,6 +8,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { applyRateLimit, getRateLimitConfig } from '@/lib/security/rate-limit';
 import { securityLogger } from '@/lib/security/logging';
+import { AdminVerifyTokenSchema } from '@/lib/validations/api';
+import { validateRequestBody } from '@/lib/middleware/validation';
 
 // Get admin password from environment - FORCE PLAIN PASSWORD MODE
 const ADMIN_PASSWORD_HASH = process.env.ADMIN_PASSWORD_HASH;
@@ -66,14 +68,13 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    const { token } = await request.json();
-    
-    if (!token) {
-      return NextResponse.json(
-        { isAuthenticated: false, reason: 'missing_token' },
-        { status: 400 }
-      );
+    // Validate request body
+    const validation = await validateRequestBody(request, AdminVerifyTokenSchema);
+    if (!validation.success) {
+      return validation.response;
     }
+    
+    const { token } = validation.data;
     
     // Verify token format and extract password
     try {

@@ -5,13 +5,38 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { securityLogger } from '@/lib/security/logging';
+import { CSPReportSchema } from '@/lib/validations/api';
+import { validateRequestBody } from '@/lib/middleware/validation';
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    // Validate CSP report format
+    const validation = await validateRequestBody(request, CSPReportSchema);
+    if (!validation.success) {
+      // For CSP reports, we should still accept malformed reports but log them
+      console.warn('Malformed CSP report received:', validation.response);
+      
+      // Try to parse raw body for logging
+      try {
+        const rawBody = await request.clone().json();
+        securityLogger.logCSPViolation(rawBody, request);
+      } catch {
+        // If we can't parse it at all, just log the attempt
+        securityLogger.logEvent({
+          type: 'csp_violation',
+          severity: 'low',
+          ip: request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown',
+          url: request.url,
+          method: request.method,
+          details: { error: 'malformed_csp_report' }
+        });
+      }
+      
+      return new NextResponse(null, { status: 204 });
+    }
     
     // CSP violation reports come in this format
-    const violation = body['csp-report'] || body;
+    const violation = validation.data['csp-report'] || validation.data;
     
     // Log the CSP violation
     securityLogger.logCSPViolation(violation, request);

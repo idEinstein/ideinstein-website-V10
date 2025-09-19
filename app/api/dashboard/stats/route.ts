@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
+import { DashboardStatsQuerySchema } from '@/lib/validations/api'
+import { validateQueryParams } from '@/lib/middleware/validation'
 
 // Mock zohoService for now since the original was just returning mock data
 interface MockProject {
@@ -29,8 +31,25 @@ const zohoService = {
   getInvoices: async (contactId: string): Promise<MockInvoice[]> => []
 }
 
-export async function GET(__request: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
+    // Validate query parameters
+    const { searchParams } = new URL(request.url);
+    const params = Object.fromEntries(searchParams.entries());
+    const queryValidation = DashboardStatsQuerySchema.safeParse(params);
+    
+    if (!queryValidation.success) {
+      return NextResponse.json(
+        { 
+          success: false,
+          error: 'Invalid query parameters',
+          details: queryValidation.error.flatten()
+        },
+        { status: 400 }
+      );
+    }
+    
+    const { timeframe, includeDetails } = queryValidation.data;
     const session = await getServerSession(authOptions)
     
     if (!session?.user?.email) {

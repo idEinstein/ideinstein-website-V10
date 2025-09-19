@@ -4,17 +4,8 @@ import { authOptions } from '@/lib/auth'
 import { cacheService } from '@/lib/cache-service'
 import { auditLogger } from '@/lib/audit-service'
 import { z } from 'zod'
-
-// Invoice query validation schema
-const invoiceQuerySchema = z.object({
-  status: z.enum(['all', 'paid', 'pending', 'overdue', 'draft']).optional().default('all'),
-  limit: z.string().transform(Number).pipe(z.number().min(1).max(100)).optional().default('50'),
-  page: z.string().transform(Number).pipe(z.number().min(1)).optional().default('1'),
-  dateFrom: z.string().optional(),
-  dateTo: z.string().optional(),
-  includeDetails: z.string().transform(val => val === 'true').pipe(z.boolean()).optional().default('true')
-});
-
+import { InvoiceQuerySchema } from '@/lib/validations/api'
+import { validateQueryParams } from '@/lib/middleware/validation'
 
 export async function GET(request: NextRequest) {
   console.log('🔍 Billing/Invoices API - GET called')
@@ -22,21 +13,21 @@ export async function GET(request: NextRequest) {
   try {
     // Validate query parameters
     const { searchParams } = new URL(request.url);
-    const queryParams = Object.fromEntries(searchParams.entries());
+    const params = Object.fromEntries(searchParams.entries());
+    const queryValidation = InvoiceQuerySchema.safeParse(params);
     
-    const validationResult = invoiceQuerySchema.safeParse(queryParams);
-    if (!validationResult.success) {
+    if (!queryValidation.success) {
       return NextResponse.json(
         { 
           success: false,
           error: 'Invalid query parameters',
-          details: validationResult.error.flatten()
+          details: queryValidation.error.flatten()
         },
         { status: 400 }
       );
     }
     
-    const { status, limit, page, dateFrom, dateTo, includeDetails } = validationResult.data;
+    const { status, limit, page, dateFrom, dateTo, includeDetails } = queryValidation.data;
     // Get user session
     const session = await getServerSession(authOptions)
     if (!session?.user?.email) {

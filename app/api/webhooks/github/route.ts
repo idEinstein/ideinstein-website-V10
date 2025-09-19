@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
+import { GitHubWebhookSchema } from '@/lib/validations/api';
 
 interface GitHubWebhookPayload {
   action?: string;
@@ -48,7 +49,19 @@ function verifyGitHubSignature(payload: string, signature: string, secret: strin
 export async function POST(request: NextRequest) {
   try {
     const body = await request.text();
-    const payload: GitHubWebhookPayload = JSON.parse(body);
+    const rawPayload = JSON.parse(body);
+    
+    // Validate GitHub webhook payload
+    const validation = GitHubWebhookSchema.safeParse(rawPayload);
+    if (!validation.success) {
+      console.error('Invalid GitHub webhook payload:', validation.error.flatten());
+      return NextResponse.json(
+        { error: 'Invalid webhook payload', details: validation.error.flatten() },
+        { status: 400 }
+      );
+    }
+    
+    const payload = validation.data;
     
     // Get headers
     const signature = request.headers.get('x-hub-signature-256');

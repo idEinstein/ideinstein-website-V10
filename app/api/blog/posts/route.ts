@@ -1,23 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-
-// Blog posts query validation schema
-const blogQuerySchema = z.object({
-  page: z.string().transform(Number).pipe(z.number().min(1)).optional().default('1'),
-  limit: z.string().transform(Number).pipe(z.number().min(1).max(50)).optional().default('10'),
-  category: z.string().optional(),
-  tag: z.string().optional(),
-  search: z.string().optional(),
-  sort: z.enum(['newest', 'oldest', 'popular']).optional().default('newest'),
-});
+import { BlogPostQuerySchema } from '@/lib/validations/api';
+import { validateQueryParams } from '@/lib/middleware/validation';
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const queryParams = Object.fromEntries(searchParams.entries());
-    
     // Validate query parameters
-    const validatedQuery = blogQuerySchema.parse(queryParams);
+    const { searchParams } = new URL(request.url);
+    const params = Object.fromEntries(searchParams.entries());
+    const queryValidation = BlogPostQuerySchema.safeParse(params);
+    
+    if (!queryValidation.success) {
+      return NextResponse.json(
+        { 
+          success: false,
+          error: 'Invalid query parameters',
+          details: queryValidation.error.flatten()
+        },
+        { status: 400 }
+      );
+    }
+    
+    const validatedQuery = queryValidation.data;
+
     
     // TODO: Fetch from database
     // const posts = await db.blogPosts.findMany({

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { applyRateLimit, getRateLimitConfig, createRateLimitHeaders } from '@/lib/security/rate-limit';
 import { securityLogger } from '@/lib/security/logging';
+import { AdminValidateSchema } from '@/lib/validations/api';
+import { validateRequestBody } from '@/lib/middleware/validation';
 
 // Get admin password from environment - FORCE PLAIN PASSWORD MODE
 const ADMIN_PASSWORD_HASH = process.env.ADMIN_PASSWORD_HASH;
@@ -62,23 +64,22 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    const { password } = await request.json();
-    
-    if (!password) {
+    // Validate request body
+    const validation = await validateRequestBody(request, AdminValidateSchema);
+    if (!validation.success) {
       securityLogger.logEvent({
         type: 'auth_failure',
         severity: 'medium',
         ip,
         url: request.url,
         method: request.method,
-        details: { reason: 'missing_password', endpoint: 'admin_authentication' }
+        details: { reason: 'validation_failed', endpoint: 'admin_authentication' }
       });
       
-      return NextResponse.json(
-        { success: false, message: 'Password is required' },
-        { status: 400 }
-      );
+      return validation.response;
     }
+    
+    const { password } = validation.data;
     
     // Validate password using secure bcrypt comparison or fallback to plain text
     let isValid: boolean;
