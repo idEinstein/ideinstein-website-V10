@@ -122,8 +122,10 @@ export async function middleware(req: NextRequest) {
   res.headers.set("x-correlation-id", cid);
   res.headers.set("x-nonce", cspConfig.nonce);
   
-  // Apply Content Security Policy
-  if (cspConfig.reportOnly && !IS_PRODUCTION) {
+  // Apply Content Security Policy (temporarily disabled for mobile debugging)
+  if (req.nextUrl.searchParams.get('debug') === 'no-csp') {
+    console.log('🔧 CSP disabled for debugging');
+  } else if (cspConfig.reportOnly && !IS_PRODUCTION) {
     res.headers.set("Content-Security-Policy-Report-Only", cspHeader);
   } else {
     res.headers.set("Content-Security-Policy", cspHeader);

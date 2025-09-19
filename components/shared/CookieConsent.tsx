@@ -2,10 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { X, Settings, Shield, BarChart3 } from 'lucide-react';
+import { X, Settings, Shield, BarChart3, Cookie, Eye, Target, Sliders } from 'lucide-react';
 
 interface CookiePreferences {
   necessary: boolean;
@@ -20,12 +18,12 @@ interface CookieConsentProps {
 
 const translations = {
   en: {
-    title: 'Cookie Preferences',
-    description: 'We use cookies to enhance your browsing experience and analyze our traffic.',
-    acceptAll: 'Accept All',
-    rejectAll: 'Reject All',
-    customize: 'Customize',
-    savePreferences: 'Save Preferences',
+    title: 'We value your privacy',
+    description: 'We use cookies to enhance your experience, analyze site performance, and deliver personalized content.',
+    acceptAll: 'Accept All Cookies',
+    rejectAll: 'Reject Optional',
+    customize: 'Manage Preferences',
+    savePreferences: 'Save My Choices',
     close: 'Close',
     necessary: {
       title: 'Necessary Cookies',
@@ -96,9 +94,18 @@ export default function CookieConsent({ language = 'en' }: CookieConsentProps) {
 
   const t = translations[language];
 
-  // Non-blocking initialization
+  // Mobile-compatible initialization
   useEffect(() => {
-    requestIdleCallback(() => {
+    // Use setTimeout as fallback for requestIdleCallback (Safari mobile compatibility)
+    const scheduleInit = (callback: () => void) => {
+      if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+        requestIdleCallback(callback);
+      } else {
+        setTimeout(callback, 1);
+      }
+    };
+
+    scheduleInit(() => {
       try {
         const consent = localStorage.getItem('cookie-consent');
         const lastInteraction = localStorage.getItem('cookie-consent-timestamp');
@@ -125,11 +132,20 @@ export default function CookieConsent({ language = 'en' }: CookieConsentProps) {
     });
   }, []);
 
-  // Apply cookie preferences (non-blocking)
+  // Apply cookie preferences (mobile-compatible)
   useEffect(() => {
     if (!hasInteracted) return;
 
-    requestIdleCallback(() => {
+    // Use setTimeout as fallback for requestIdleCallback (Safari mobile compatibility)
+    const scheduleApply = (callback: () => void) => {
+      if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+        requestIdleCallback(callback);
+      } else {
+        setTimeout(callback, 1);
+      }
+    };
+
+    scheduleApply(() => {
       try {
         // Handle Google Analytics
         if (preferences.analytics) {
@@ -207,160 +223,211 @@ export default function CookieConsent({ language = 'en' }: CookieConsentProps) {
   if (!isVisible) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm">
-      <div className="fixed bottom-0 left-0 right-0 p-4 md:bottom-4 md:left-4 md:right-auto md:max-w-md">
-        <Card className="shadow-xl border-2">
-          <CardHeader className="pb-3">
+    <div className="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm">
+      <div className="fixed bottom-0 left-0 right-0 p-3 md:bottom-6 md:left-6 md:right-auto md:max-w-lg">
+        <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden">
+          {/* Header */}
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4 border-b border-gray-100">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Shield className="h-5 w-5" />
-                {t.title}
-              </CardTitle>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                  <Cookie className="h-5 w-5 text-blue-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">{t.title}</h3>
+                  <p className="text-sm text-gray-600 mt-1 leading-relaxed">
+                    {t.description}
+                  </p>
+                </div>
+              </div>
               {showDetails && (
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => setShowDetails(false)}
+                  className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full w-8 h-8 p-0"
                 >
                   <X className="h-4 w-4" />
                 </Button>
               )}
             </div>
-            <CardDescription className="text-sm">
-              {t.description}
-            </CardDescription>
-          </CardHeader>
+          </div>
 
-          <CardContent className="pt-0">
+          {/* Content */}
+          <div className="p-6">
             {!showDetails ? (
-              <div className="space-y-3">
-                <div className="flex flex-col gap-2 sm:flex-row">
+              <div className="space-y-4">
+                {/* Primary Actions */}
+                <div className="flex flex-col gap-3 sm:flex-row">
                   <Button 
                     onClick={handleAcceptAll}
-                    className="flex-1"
-                    size="sm"
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-xl shadow-sm transition-all duration-200 hover:shadow-md"
+                    size="default"
                   >
                     {t.acceptAll}
                   </Button>
                   <Button 
                     variant="outline"
                     onClick={handleRejectAll}
-                    className="flex-1"
-                    size="sm"
+                    className="flex-1 border-gray-300 text-gray-700 hover:bg-gray-50 font-medium py-3 px-6 rounded-xl transition-all duration-200"
+                    size="default"
                   >
                     {t.rejectAll}
                   </Button>
                 </div>
+                
+                {/* Secondary Action */}
                 <Button
                   variant="ghost"
                   onClick={() => setShowDetails(true)}
-                  className="w-full"
-                  size="sm"
+                  className="w-full text-gray-600 hover:text-gray-800 hover:bg-gray-50 font-medium py-3 px-4 rounded-xl transition-all duration-200"
+                  size="default"
                 >
                   <Settings className="h-4 w-4 mr-2" />
                   {t.customize}
                 </Button>
+                
+                {/* Privacy Links */}
+                <div className="flex justify-center gap-4 text-xs text-gray-500 pt-2">
+                  <a href="/privacy" className="hover:text-blue-600 transition-colors underline">
+                    {t.privacyPolicy}
+                  </a>
+                  <span>•</span>
+                  <a href="/privacy#cookies" className="hover:text-blue-600 transition-colors underline">
+                    {t.cookiePolicy}
+                  </a>
+                </div>
               </div>
             ) : (
-              <div className="space-y-4">
-                <Tabs defaultValue="cookies" className="w-full">
-                  <TabsList className="grid grid-cols-1 w-full">
-                    <TabsTrigger value="cookies" className="text-xs">Cookie Settings</TabsTrigger>
-                  </TabsList>
-                  
-                  <TabsContent value="cookies" className="space-y-3 mt-3">
-                    {/* Necessary Cookies */}
-                    <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+              <div className="space-y-5">
+                <div className="text-center mb-4">
+                  <h4 className="text-lg font-semibold text-gray-900 mb-2">Customize Your Experience</h4>
+                  <p className="text-sm text-gray-600">Choose which cookies you'd like to allow</p>
+                </div>
+
+                <div className="space-y-4">
+                  {/* Necessary Cookies */}
+                  <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+                    <div className="flex items-start gap-3">
+                      <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <Shield className="h-4 w-4 text-green-600" />
+                      </div>
                       <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h4 className="font-medium text-sm">{t.necessary.title}</h4>
-                          <Badge variant="secondary" className="text-xs">
+                        <div className="flex items-center gap-2 mb-2">
+                          <h5 className="font-semibold text-gray-900">{t.necessary.title}</h5>
+                          <Badge className="bg-green-100 text-green-800 text-xs px-2 py-0.5">
                             {t.necessary.always}
                           </Badge>
                         </div>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-sm text-gray-600 leading-relaxed">
                           {t.necessary.description}
                         </p>
                       </div>
                     </div>
+                  </div>
 
-                    {/* Analytics Cookies */}
-                    <div className="flex items-center justify-between p-3 border rounded-lg">
+                  {/* Analytics Cookies */}
+                  <div className="bg-white border border-gray-200 rounded-xl p-4 hover:border-gray-300 transition-colors">
+                    <div className="flex items-start gap-3">
+                      <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <BarChart3 className="h-4 w-4 text-blue-600" />
+                      </div>
                       <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <BarChart3 className="h-4 w-4" />
-                          <h4 className="font-medium text-sm">{t.analytics.title}</h4>
+                        <div className="flex items-center justify-between mb-2">
+                          <h5 className="font-semibold text-gray-900">{t.analytics.title}</h5>
+                          <button
+                            onClick={() => handleTogglePreference('analytics')}
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                              preferences.analytics ? 'bg-blue-600' : 'bg-gray-300'
+                            }`}
+                          >
+                            <span
+                              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                                preferences.analytics ? 'translate-x-6' : 'translate-x-1'
+                              }`}
+                            />
+                          </button>
                         </div>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-sm text-gray-600 leading-relaxed">
                           {t.analytics.description}
                         </p>
                       </div>
-                      <Button
-                        variant={preferences.analytics ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => handleTogglePreference('analytics')}
-                        className="ml-3"
-                      >
-                        {preferences.analytics ? 'ON' : 'OFF'}
-                      </Button>
                     </div>
+                  </div>
 
-                    {/* Marketing Cookies */}
-                    <div className="flex items-center justify-between p-3 border rounded-lg">
+                  {/* Marketing Cookies */}
+                  <div className="bg-white border border-gray-200 rounded-xl p-4 hover:border-gray-300 transition-colors">
+                    <div className="flex items-start gap-3">
+                      <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <Target className="h-4 w-4 text-purple-600" />
+                      </div>
                       <div className="flex-1">
-                        <h4 className="font-medium text-sm">{t.marketing.title}</h4>
-                        <p className="text-xs text-muted-foreground">
+                        <div className="flex items-center justify-between mb-2">
+                          <h5 className="font-semibold text-gray-900">{t.marketing.title}</h5>
+                          <button
+                            onClick={() => handleTogglePreference('marketing')}
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                              preferences.marketing ? 'bg-blue-600' : 'bg-gray-300'
+                            }`}
+                          >
+                            <span
+                              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                                preferences.marketing ? 'translate-x-6' : 'translate-x-1'
+                              }`}
+                            />
+                          </button>
+                        </div>
+                        <p className="text-sm text-gray-600 leading-relaxed">
                           {t.marketing.description}
                         </p>
                       </div>
-                      <Button
-                        variant={preferences.marketing ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => handleTogglePreference('marketing')}
-                        className="ml-3"
-                      >
-                        {preferences.marketing ? 'ON' : 'OFF'}
-                      </Button>
                     </div>
+                  </div>
 
-                    {/* Preference Cookies */}
-                    <div className="flex items-center justify-between p-3 border rounded-lg">
+                  {/* Preference Cookies */}
+                  <div className="bg-white border border-gray-200 rounded-xl p-4 hover:border-gray-300 transition-colors">
+                    <div className="flex items-start gap-3">
+                      <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <Sliders className="h-4 w-4 text-orange-600" />
+                      </div>
                       <div className="flex-1">
-                        <h4 className="font-medium text-sm">{t.preferences.title}</h4>
-                        <p className="text-xs text-muted-foreground">
+                        <div className="flex items-center justify-between mb-2">
+                          <h5 className="font-semibold text-gray-900">{t.preferences.title}</h5>
+                          <button
+                            onClick={() => handleTogglePreference('preferences')}
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                              preferences.preferences ? 'bg-blue-600' : 'bg-gray-300'
+                            }`}
+                          >
+                            <span
+                              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                                preferences.preferences ? 'translate-x-6' : 'translate-x-1'
+                              }`}
+                            />
+                          </button>
+                        </div>
+                        <p className="text-sm text-gray-600 leading-relaxed">
                           {t.preferences.description}
                         </p>
                       </div>
-                      <Button
-                        variant={preferences.preferences ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => handleTogglePreference('preferences')}
-                        className="ml-3"
-                      >
-                        {preferences.preferences ? 'ON' : 'OFF'}
-                      </Button>
                     </div>
-                  </TabsContent>
-                </Tabs>
+                  </div>
+                </div>
 
-                <div className="flex flex-col gap-2">
-                  <Button onClick={handleSavePreferences} size="sm">
+                {/* Save Button */}
+                <div className="pt-4 border-t border-gray-100">
+                  <Button 
+                    onClick={handleSavePreferences} 
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-xl shadow-sm transition-all duration-200 hover:shadow-md"
+                    size="default"
+                  >
                     {t.savePreferences}
                   </Button>
-                  <div className="flex gap-2 text-xs">
-                    <a href="/privacy" className="text-primary hover:underline">
-                      {t.privacyPolicy}
-                    </a>
-                    <span className="text-muted-foreground">•</span>
-                    <a href="/privacy#cookies" className="text-primary hover:underline">
-                      {t.cookiePolicy}
-                    </a>
-                  </div>
                 </div>
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     </div>
   );

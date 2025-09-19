@@ -121,11 +121,19 @@ export function AnimationProvider({ children }: { children: React.ReactNode }) {
     }));
   }, []);
 
-  // Device detection on client side - Non-blocking
+  // Device detection on client side - Mobile-safe and non-blocking
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    // Use requestIdleCallback for non-blocking device detection
+    // Mobile-safe scheduling function
+    const scheduleDetection = (callback: () => void) => {
+      if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+        requestIdleCallback(callback, { timeout: 1000 });
+      } else {
+        setTimeout(callback, 1);
+      }
+    };
+
     const detectDevice = () => {
       const performDetection = () => {
         try {
@@ -175,12 +183,7 @@ export function AnimationProvider({ children }: { children: React.ReactNode }) {
         }
       };
 
-      // Use requestIdleCallback if available, otherwise setTimeout with minimal delay
-      if ('requestIdleCallback' in window) {
-        requestIdleCallback(performDetection);
-      } else {
-        setTimeout(performDetection, 1);
-      }
+      scheduleDetection(performDetection);
     };
 
     detectDevice();
@@ -188,11 +191,7 @@ export function AnimationProvider({ children }: { children: React.ReactNode }) {
     // Lightweight event listeners
     const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
     const handleMediaChange = () => {
-      if ('requestIdleCallback' in window) {
-        requestIdleCallback(detectDevice);
-      } else {
-        setTimeout(detectDevice, 1);
-      }
+      scheduleDetection(detectDevice);
     };
     
     mediaQuery.addEventListener('change', handleMediaChange);

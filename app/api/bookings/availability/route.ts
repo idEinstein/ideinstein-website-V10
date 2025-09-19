@@ -64,6 +64,14 @@ return NextResponse.json({ ok: true, slots: slots.length ? slots : FALLBACK, tim
 
 } catch (err: any) {
 logger.warn("bookings.availability.fallback", { cid, err: err?.message });
-return NextResponse.json({ ok: true, slots: FALLBACK, timeZone: "Europe/Berlin", source: "fallback", cid }, { status: 502 });
+// Return 200 status with fallback slots so frontend doesn't reject the response
+return NextResponse.json({ 
+  ok: true, 
+  slots: FALLBACK, 
+  timeZone: "Europe/Berlin", 
+  source: "fallback", 
+  cid,
+  warning: "Using fallback slots due to Zoho connection issue"
+});
 }
 }

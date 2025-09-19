@@ -28,11 +28,36 @@ export class ErrorBoundary extends Component<Props, State> {
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('ErrorBoundary caught an error:', error, errorInfo)
     
+    // Enhanced mobile error logging for production
+    const isMobile = /Mobile|Android|iPhone|iPad/i.test(navigator.userAgent)
+    const errorDetails = {
+      error: error.message,
+      stack: error.stack,
+      componentStack: errorInfo.componentStack,
+      isMobile,
+      viewport: `${window.innerWidth}x${window.innerHeight}`,
+      userAgent: navigator.userAgent,
+      url: window.location.href,
+      timestamp: new Date().toISOString()
+    }
+    
+    // Log to console for debugging
+    console.error('🚨 Mobile Error Details:', errorDetails)
+    
+    // Send to API for production logging
+    if (typeof window !== 'undefined' && process.env.NODE_ENV === 'production') {
+      fetch('/api/mobile-debug', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'error', ...errorDetails })
+      }).catch(e => console.warn('Failed to log error:', e))
+    }
+    
     // Log to analytics
     if (typeof window !== 'undefined' && window.gtag) {
       window.gtag('event', 'exception', {
         event_category: 'Error',
-        event_label: error.message,
+        event_label: `${isMobile ? 'Mobile' : 'Desktop'}: ${error.message}`,
         value: 0,
       })
     }

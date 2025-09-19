@@ -19,6 +19,13 @@ const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = META;
 
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
+};
+
 export default function RootLayout({
   children,
 }: {
@@ -33,6 +40,10 @@ export default function RootLayout({
         <StructuredData type="organization" />
         <StructuredData type="website" />
         <GoogleAnalytics />
+        {/* Production mobile debug - only in development or with debug param */}
+        {process.env.NODE_ENV === 'development' && (
+          <Script src="/mobile-debug.js" strategy="beforeInteractive" />
+        )}
       </head>
       <body className={inter.className}>
         <SessionProvider>
@@ -45,8 +56,12 @@ export default function RootLayout({
                     {children}
                   </main>
                   <Footer />
-                  <FloatingContactHub />
-                  <CookieConsent language="en" />
+                  <ErrorBoundary fallback={<div></div>}>
+                    <FloatingContactHub />
+                  </ErrorBoundary>
+                  <ErrorBoundary fallback={<div></div>}>
+                    <CookieConsent language="en" />
+                  </ErrorBoundary>
                 </div>
               </AudienceProvider>
             </AnimationProvider>

@@ -102,15 +102,48 @@ function ConsultationForm({ onSubmit, onSuccess, defaultService }: ConsultationF
 
   // ---- availability: load Zoho Bookings slots when date changes ----
   const selectedDate = form.watch('date')
+  const [slotsError, setSlotsError] = React.useState<string | null>(null)
+  
   React.useEffect(() => {
     const d = selectedDate as Date | undefined
-    if (!d) { setSlots([]); setTimeZone(undefined); return }
-    const y = d.getFullYear(); const m = String(d.getMonth() + 1).padStart(2, '0'); const day = String(d.getDate()).padStart(2, '0')
+    if (!d) { 
+      setSlots([])
+      setTimeZone(undefined)
+      setSlotsError(null)
+      return 
+    }
+    
+    const y = d.getFullYear()
+    const m = String(d.getMonth() + 1).padStart(2, '0')
+    const day = String(d.getDate()).padStart(2, '0')
+    
     setLoadingSlots(true)
+    setSlotsError(null)
+    
     fetch(`/api/bookings/availability?date=${y}-${m}-${day}`)
-      .then(r => r.ok ? r.json() : Promise.reject(new Error(`availability ${r.status}`)))
-      .then(j => { setSlots(Array.isArray(j.slots) ? j.slots : []); setTimeZone(j.timeZone) })
-      .catch(() => { setSlots([]); setTimeZone(undefined) })
+      .then(r => r.json()) // Always parse JSON, don't reject on non-200 status
+      .then(j => { 
+        if (j.ok && Array.isArray(j.slots)) {
+          setSlots(j.slots)
+          setTimeZone(j.timeZone)
+          
+          // Show warning if using fallback slots
+          if (j.source === 'fallback' && j.warning) {
+            setSlotsError(`⚠️ ${j.warning}`)
+          }
+        } else {
+          // Fallback to default slots if API response is invalid
+          setSlots(fallbackTimeSlots)
+          setTimeZone('Europe/Berlin')
+          setSlotsError('⚠️ Using default time slots due to booking system connectivity')
+        }
+      })
+      .catch((error) => { 
+        console.warn('Slots loading failed, using fallback:', error)
+        setSlots(fallbackTimeSlots)
+        setTimeZone('Europe/Berlin')
+        setSlotsError('⚠️ Using default time slots - booking system temporarily unavailable')
+      })
       .finally(() => setLoadingSlots(false))
   }, [selectedDate])
 
@@ -418,6 +451,7 @@ function ConsultationForm({ onSubmit, onSuccess, defaultService }: ConsultationF
                 </SelectContent>
               </Select>
               {timeZone && <p className="text-xs text-muted-foreground">Times shown in <span className="font-medium">{timeZone}</span>.</p>}
+              {slotsError && <p className="text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded">{slotsError}</p>}
               <FormMessage />
             </FormItem>
           )} />

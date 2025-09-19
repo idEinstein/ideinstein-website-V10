@@ -1,6 +1,19 @@
 // lib/zoho/client.ts — Per-service OAuth, retries, correlation IDs
 import { logger } from "@/library/logger";
 
+// Fallback UUID generation for environments where crypto.randomUUID is not available
+function generateUUID(): string {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  // Fallback UUID v4 generation
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c == 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
 // Define CampaignSubscriber interface for status checks
 export interface CampaignSubscriber {
   email: string;
@@ -72,24 +85,53 @@ export async function zohoAccessToken(svc: Service): Promise<string> {
 
 async function refreshToken(svc: Service) {
   const cred = CREDS[svc];
+  
+  // Check if refresh token exists
+  if (!cred.refresh) {
+    logger.error("zoho.token.missing", { svc });
+    throw new Error(`zoho:${svc}:refresh_token_missing - Please set ZOHO_${svc.toUpperCase()}_REFRESH_TOKEN`);
+  }
+  
   const body = new URLSearchParams({
     grant_type: "refresh_token",
     refresh_token: cred.refresh,
     client_id: cred.id,
     client_secret: cred.secret,
   });
+  
   const res = await fetch(`${OAUTH_BASE}/oauth/v2/token`, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body,
   });
+  
   const json: any = await res.json().catch(() => ({}));
+  
   if (!res.ok || !json?.access_token) {
-    logger.error("zoho.token.refresh.failed", { svc, status: res.status, json });
-    throw new Error(`zoho:${svc}:token_refresh_failed`);
+    // Provide more specific error messages
+    let errorMsg = `zoho:${svc}:token_refresh_failed`;
+    if (res.status === 400 && json?.error === 'invalid_grant') {
+      errorMsg += ' - Refresh token expired, please regenerate at /admin/zoho/oauth';
+    } else if (res.status === 401) {
+      errorMsg += ' - Invalid credentials, check ZOHO_CLIENT_ID and ZOHO_CLIENT_SECRET';
+    } else {
+      errorMsg += ` - HTTP ${res.status}: ${json?.error || 'Unknown error'}`;
+    }
+    
+    logger.error("zoho.token.refresh.failed", { 
+      svc, 
+      status: res.status, 
+      error: json?.error,
+      errorDescription: json?.error_description,
+      troubleshooting: res.status === 400 ? 'Regenerate refresh token at /admin/zoho/oauth' : 'Check credentials and network'
+    });
+    
+    throw new Error(errorMsg);
   }
+  
   const now = Math.floor(Date.now() / 1000);
   cache.set(svc, { token: json.access_token, exp: now + ((json.expires_in ?? 3600) - 60) });
+  logger.info("zoho.token.refreshed", { svc, expiresIn: json.expires_in });
   return json.access_token as string;
 }
 
@@ -106,7 +148,7 @@ export async function zohoFetch<T>(
   init: RequestInit & { retry?: number; cid?: string } = {}
 ): Promise<T> {
   const url = `${BASES[svc]}${path.startsWith("/") ? "" : "/"}${path}`;
-  const cid = init.cid || crypto.randomUUID();
+  const cid = init.cid || generateUUID();
   
   // Clear cache for bookings to force fresh token
   if (svc === 'bookings') {
@@ -191,7 +233,7 @@ export const workdrive = {
       method: "POST",
       headers: {
         Authorization: `Zoho-oauthtoken ${token}`,
-        "X-Correlation-ID": cid || crypto.randomUUID(),
+        "X-Correlation-ID": cid || generateUUID(),
         // Don't set Content-Type - let browser set multipart boundary
       },
       body: fd,
@@ -227,7 +269,7 @@ export const campaigns = {
         Authorization: `Zoho-oauthtoken ${token}`,
         "Content-Type": "application/x-www-form-urlencoded",
         Accept: "application/json",
-        "X-Correlation-ID": cid || crypto.randomUUID(),
+        "X-Correlation-ID": cid || generateUUID(),
       },
       body,
     });
