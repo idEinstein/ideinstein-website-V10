@@ -12,3 +12,7 @@ export const GET = withAdminAuth(async (request: NextRequest) => {
     }
   });
 });
+
+// Ensure Node.js runtime for bcrypt compatibility
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';

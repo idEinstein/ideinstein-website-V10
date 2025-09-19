@@ -11,7 +11,9 @@ export default function robots(): MetadataRoute.Robots {
         userAgent: '*',
         allow: '/',
         disallow: [
-          '/api/',
+          '/api/admin/',        // Only block admin API routes
+          '/api/debug/',        // Block debug endpoints
+          '/api/security/',     // Block security dashboard
           '/admin/',
           '/_next/',
           '/portal/',
@@ -23,7 +25,9 @@ export default function robots(): MetadataRoute.Robots {
         userAgent: 'Googlebot',
         allow: '/',
         disallow: [
-          '/api/',
+          '/api/admin/',        // Only block admin API routes
+          '/api/debug/',        // Block debug endpoints  
+          '/api/security/',     // Block security dashboard
           '/admin/',
           '/_next/',
           '/portal/',

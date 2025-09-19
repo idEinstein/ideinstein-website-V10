@@ -488,4 +488,7 @@ export const GET = withAdminAuth(async (request: NextRequest) => {
 // Enable dynamic rendering for real-time status
 export const dynamic = "force-dynamic";
 
+// Ensure Node.js runtime for bcrypt compatibility
+export const runtime = 'nodejs';
+
 // Force rebuild to ensure token validation approach is used

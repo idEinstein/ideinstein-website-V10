@@ -27,14 +27,51 @@ export default function AdminAuth({ children }: AdminAuthProps) {
     if (authToken && authExpiry) {
       const expiryTime = parseInt(authExpiry);
       if (Date.now() < expiryTime) {
-        setIsAuthenticated(true);
+        // Verify token is still valid with server
+        fetch('/api/admin/verify-token', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token: authToken })
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.isAuthenticated) {
+            setIsAuthenticated(true);
+            console.log('✅ Existing token is valid');
+          } else {
+            console.log('❌ Existing token is invalid, clearing cache');
+            clearAllCache();
+          }
+        })
+        .catch(() => {
+          console.log('❌ Token verification failed, clearing cache');
+          clearAllCache();
+        });
       } else {
         // Token expired, clear storage
-        localStorage.removeItem('admin_auth_token');
-        localStorage.removeItem('admin_auth_expiry');
+        console.log('⏰ Token expired, clearing cache');
+        clearAllCache();
       }
     }
   }, []);
+
+  const clearAllCache = () => {
+    // Clear localStorage
+    localStorage.removeItem('admin_auth_token');
+    localStorage.removeItem('admin_auth_expiry');
+    
+    // Clear sessionStorage
+    sessionStorage.clear();
+    
+    // Clear any other admin-related storage
+    Object.keys(localStorage).forEach(key => {
+      if (key.startsWith('admin_') || key.includes('auth')) {
+        localStorage.removeItem(key);
+      }
+    });
+    
+    console.log('✅ Cleared all authentication cache');
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,6 +79,9 @@ export default function AdminAuth({ children }: AdminAuthProps) {
     setError('');
 
     try {
+      // Clear any existing invalid tokens before attempting login
+      clearAllCache();
+      
       // Try to authenticate with server to get proper validation
       const response = await fetch('/api/admin/validate', {
         method: 'POST',
@@ -63,14 +103,19 @@ export default function AdminAuth({ children }: AdminAuthProps) {
           
           setIsAuthenticated(true);
           setPassword('');
+          console.log('✅ Authentication successful');
         } else {
-          setError('Invalid password. Please try again.');
+          setError('Invalid password. Please check your password and try again.');
+          console.log('❌ Authentication failed: Invalid password');
         }
       } else {
-        setError('Authentication failed. Please try again.');
+        const errorData = await response.json().catch(() => ({}));
+        setError(`Authentication failed: ${errorData.message || 'Server error'}`);
+        console.log('❌ Authentication failed: Server error', response.status);
       }
     } catch (err) {
-      setError('Authentication failed. Please try again.');
+      setError('Authentication failed. Please check your connection and try again.');
+      console.log('❌ Authentication failed: Network error', err);
     } finally {
       setLoading(false);
     }
@@ -144,6 +189,20 @@ export default function AdminAuth({ children }: AdminAuthProps) {
                       Access Dashboard
                     </>
                   )}
+                </Button>
+
+                <Button 
+                  type="button" 
+                  variant="outline"
+                  className="w-full mt-2" 
+                  onClick={() => {
+                    clearAllCache();
+                    setError('');
+                    alert('Cache cleared! Please try logging in again.');
+                  }}
+                  disabled={loading}
+                >
+                  Clear All Cache
                 </Button>
               </form>
 

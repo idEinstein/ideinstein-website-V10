@@ -3,23 +3,27 @@ import bcrypt from 'bcryptjs';
 import { applyRateLimit, getRateLimitConfig, createRateLimitHeaders } from '@/lib/security/rate-limit';
 import { securityLogger } from '@/lib/security/logging';
 
-// Get admin password hash from environment
+// Get admin password from environment - FORCE PLAIN PASSWORD MODE
 const ADMIN_PASSWORD_HASH = process.env.ADMIN_PASSWORD_HASH;
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 
-// Hash the plain password if no hash is provided (development fallback)
+// TEMPORARY FIX: Force plain password mode to bypass hash issues
 let adminPasswordHash: string;
-let useHashedPassword = true;
+let useHashedPassword = false; // Force plain password mode
 
-if (ADMIN_PASSWORD_HASH) {
-  adminPasswordHash = ADMIN_PASSWORD_HASH;
-} else {
-  // Fallback to plain password comparison for existing setup
+if (ADMIN_PASSWORD) {
+  // Use plain password comparison
   adminPasswordHash = ADMIN_PASSWORD;
   useHashedPassword = false;
-  if (process.env.NODE_ENV === 'production') {
-    console.warn('⚠️ SECURITY WARNING: Using unhashed admin password in production! Please upgrade to ADMIN_PASSWORD_HASH.');
-  }
+  console.log('🔧 Using plain password authentication (temporary fix)');
+} else if (ADMIN_PASSWORD_HASH && ADMIN_PASSWORD_HASH.length === 60 && ADMIN_PASSWORD_HASH.startsWith('$2')) {
+  // Only use hash if it's valid format
+  adminPasswordHash = ADMIN_PASSWORD_HASH;
+  useHashedPassword = true;
+  console.log('🔒 Using bcrypt hash authentication');
+} else {
+  // No valid password configured
+  throw new Error('❌ CRITICAL: No valid admin authentication configured! Set ADMIN_PASSWORD environment variable.');
 }
 
 export async function POST(request: NextRequest) {
