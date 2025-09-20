@@ -133,14 +133,14 @@ const OptimizedMobileMenu: React.FC<OptimizedMobileMenuProps> = ({
             right: 0,
             bottom: 0,
             width: '100vw',
-            height: '100vh',
+            height: '100dvh', // Use dynamic viewport height for mobile
             zIndex: 9999,
             background: 'linear-gradient(135deg, rgba(30, 64, 175, 0.98) 0%, rgba(59, 130, 246, 0.95) 100%)',
             backdropFilter: 'blur(20px) saturate(180%)'
           }}
         >
           {/* Optimized Three-Tier Layout */}
-          <div className="flex flex-col w-full h-full min-h-screen">
+          <div className="flex flex-col w-full mobile-menu-full-height">
             
             {/* Tier 1: Compact Header (56px) */}
             <div className="flex-shrink-0 h-14 flex items-center justify-between px-4 border-b border-white/20 bg-black/10">
@@ -168,7 +168,7 @@ const OptimizedMobileMenu: React.FC<OptimizedMobileMenuProps> = ({
             </div>
 
             {/* Tier 2: Navigation (Flexible Height) */}
-            <div className="flex-1 overflow-y-auto px-4 py-3 min-h-0">
+            <div className="flex-1 overflow-y-auto px-4 py-3 min-h-0 pb-safe">
               <motion.div
                 initial="closed"
                 animate="open"
@@ -301,13 +301,17 @@ const OptimizedMobileMenu: React.FC<OptimizedMobileMenuProps> = ({
               </motion.div>
             </div>
 
-            {/* Tier 3: Compact Action Bar (80px) */}
-            <div className="flex-shrink-0 h-20 px-4 py-3 border-t border-white/20 bg-black/10">
+            {/* Tier 3: Compact Action Bar - Always visible on mobile */}
+            <div className="flex-shrink-0 px-4 py-3 border-t border-white/20 bg-black/10 pb-safe mobile-menu-action-bar" 
+                 style={{ 
+                   minHeight: '80px',
+                   paddingBottom: 'max(12px, env(safe-area-inset-bottom))'
+                 }}>
               {/* Client Portal temporarily removed - to be implemented later */}
-              <div className="flex space-x-2 h-full">
+              <div className="flex space-x-2 h-14">
                 <Button
                   variant="accelerator"
-                  className="w-full h-full text-sm"
+                  className="w-full h-full text-sm font-semibold shadow-lg hover:shadow-xl min-h-[56px] mobile-menu-action-button"
                   onClick={() => {
                     onClose();
                     onShowQuotation();

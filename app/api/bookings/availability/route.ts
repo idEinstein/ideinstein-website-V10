@@ -3,6 +3,19 @@ import { bookings } from "@/lib/zoho/client";
 import { z } from "zod";
 import { logger } from "@/library/logger";
 
+// Fallback UUID generation for environments where crypto.randomUUID is not available
+function generateUUID(): string {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  // Fallback UUID v4 generation
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c == 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -20,7 +33,7 @@ resource_id: z.string().optional(),
 
 
 export async function GET(req: NextRequest) {
-const cid = crypto.randomUUID();
+const cid = generateUUID();
 try {
 const { searchParams } = new URL(req.url);
 const parsed = qSchema.safeParse({
@@ -44,22 +57,53 @@ return NextResponse.json({ ok: true, slots: [], timeZone: "Europe/Berlin", messa
 
 
 const actor = staff_id || resource_id;
-if (!actor) return NextResponse.json({ ok: false, cid, error: "staff_id or resource_id required" }, { status: 400 });
+if (!actor) {
+  logger.error("bookings.availability.missing_actor", { cid, service_id, staff_id, resource_id });
+  return NextResponse.json({ ok: false, cid, error: "staff_id or resource_id required" }, { status: 400 });
+}
 
+// Log the request details for debugging
+logger.info("bookings.availability.request", { 
+  cid, 
+  date, 
+  service_id, 
+  actor, 
+  env_service_id: process.env.BOOKINGS_SERVICE_ID,
+  env_staff_id: process.env.BOOKINGS_STAFF_ID 
+});
 
 const data = await bookings.checkAvailability(service_id!, actor, date, cid);
+
+// Log the raw response for debugging
+logger.info("bookings.availability.response", { cid, data: JSON.stringify(data).substring(0, 500) });
+
 let slots: string[] = [];
 const any = data as any;
 if (any?.response?.returnvalue) {
-slots = any.response.returnvalue.data || any.response.returnvalue || [];
+  slots = any.response.returnvalue.data || any.response.returnvalue || [];
+  logger.info("bookings.availability.slots_from_returnvalue", { cid, slotsCount: slots.length });
 } else if (Array.isArray(any)) {
-slots = any;
+  slots = any;
+  logger.info("bookings.availability.slots_from_array", { cid, slotsCount: slots.length });
 } else if (any?.slots) {
-slots = any.slots;
+  slots = any.slots;
+  logger.info("bookings.availability.slots_from_slots_property", { cid, slotsCount: slots.length });
+} else {
+  logger.warn("bookings.availability.no_slots_found", { cid, dataStructure: Object.keys(any || {}) });
 }
 
+const result = {
+  ok: true, 
+  slots: slots.length ? slots : FALLBACK, 
+  timeZone: "Europe/Berlin", 
+  source: slots.length ? "zoho" : "fallback", 
+  cid,
+  ...(slots.length === 0 && { warning: "No slots returned from Zoho Bookings API" })
+};
 
-return NextResponse.json({ ok: true, slots: slots.length ? slots : FALLBACK, timeZone: "Europe/Berlin", source: slots.length ? "zoho" : "fallback", cid });
+logger.info("bookings.availability.final_result", { cid, source: result.source, slotsCount: result.slots.length });
+
+return NextResponse.json(result);
 
 
 } catch (err: any) {
