@@ -60,14 +60,14 @@ export default function UnifiedCard({
       transition={{ duration: 0.6, delay }}
       className={`group ${className}`}
     >
-      <div className={`bg-white rounded-2xl p-4 sm:p-6 md:p-8 shadow-lg border border-gray-100 h-full min-h-[180px] md:min-h-[200px] transition-all duration-300 flex flex-col active:scale-[0.98] active:bg-gray-50 ${
-        hover ? 'hover:shadow-2xl hover:border-gray-200 hover:scale-105' : ''
+      <div className={`bg-white rounded-2xl p-4 sm:p-6 md:p-8 shadow-lg border border-gray-100 h-full min-h-[180px] md:min-h-[200px] transition-all duration-300 ease-out flex flex-col active:scale-[0.98] active:bg-gray-50 motion-reduce:hover:scale-100 motion-reduce:transition-none ${
+        hover ? 'hover:shadow-2xl hover:border-gray-200 hover:scale-[1.02]' : ''
       }`}>
         {Icon && (
           <motion.div
-            whileHover={hover ? { scale: 1.1, rotate: 5 } : {}}
+            whileHover={hover ? { scale: 1.05, rotate: 2 } : {}}
             transition={{ type: 'spring', stiffness: 300 }}
-            className={`w-16 h-16 rounded-2xl bg-gradient-to-r ${iconColor} flex items-center justify-center mb-6`}
+            className={`w-16 h-16 rounded-2xl bg-gradient-to-r ${iconColor} flex items-center justify-center mb-6 motion-reduce:hover:scale-100 motion-reduce:hover:rotate-0`}
           >
             <Icon className="w-8 h-8 text-white" />
           </motion.div>

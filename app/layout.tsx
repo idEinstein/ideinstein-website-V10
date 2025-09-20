@@ -40,10 +40,13 @@ export default function RootLayout({
         <StructuredData type="organization" />
         <StructuredData type="website" />
         <GoogleAnalytics />
-        {/* Production mobile debug - only in development or with debug param */}
-        {process.env.NODE_ENV === 'development' && (
-          <Script src="/mobile-debug.js" strategy="beforeInteractive" />
-        )}
+        {/* Mobile debug script - temporarily disabled to fix hydration issues */}
+        {/* {process.env.NODE_ENV === 'development' && (
+          <script 
+            src="/mobile-debug.js" 
+            suppressHydrationWarning
+          />
+        )} */}
       </head>
       <body className={inter.className}>
         <SessionProvider>

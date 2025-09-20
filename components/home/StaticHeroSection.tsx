@@ -127,7 +127,7 @@ export default function StaticHeroSection() {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.4 }}
                 viewport={{ once: true, margin: "-50px" }}
-                className="bg-white/10 backdrop-blur-sm rounded-xl md:rounded-2xl p-3 md:p-4 border border-white/20 hover:bg-white/15 hover:shadow-xl hover:scale-105 cursor-pointer group text-left min-h-[220px] md:min-h-[240px] active:scale-[0.98] sm:active:scale-100 transition-all duration-300"
+                className="bg-white/10 backdrop-blur-sm rounded-xl md:rounded-2xl p-3 md:p-4 border border-white/20 hover:bg-white/15 hover:shadow-xl hover:scale-[1.02] cursor-pointer group text-left min-h-[220px] md:min-h-[240px] active:scale-[0.98] active:bg-white/20 transition-all duration-300 ease-out motion-reduce:hover:scale-100 motion-reduce:transition-none"
                 onClick={handleStartupClick}
               >
                 <div className="flex items-center mb-2 md:mb-3">
@@ -191,7 +191,7 @@ export default function StaticHeroSection() {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.5 }}
                 viewport={{ once: true, margin: "-50px" }}
-                className="bg-white/10 backdrop-blur-sm rounded-xl md:rounded-2xl p-3 md:p-4 border border-white/20 hover:bg-white/15 hover:shadow-xl hover:scale-105 cursor-pointer group text-left min-h-[220px] md:min-h-[240px] active:scale-[0.98] sm:active:scale-100 transition-all duration-300"
+                className="bg-white/10 backdrop-blur-sm rounded-xl md:rounded-2xl p-3 md:p-4 border border-white/20 hover:bg-white/15 hover:shadow-xl hover:scale-[1.02] cursor-pointer group text-left min-h-[220px] md:min-h-[240px] active:scale-[0.98] active:bg-white/20 transition-all duration-300 ease-out motion-reduce:hover:scale-100 motion-reduce:transition-none"
                 onClick={handleEnterpriseClick}
               >
                 <div className="flex items-center mb-2 md:mb-3">

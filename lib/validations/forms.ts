@@ -3,6 +3,7 @@ import { z } from "zod";
 
 /** ---------- Shared picklists (keep labels in sync with Zoho CRM) ---------- */
 export const SERVICE_OPTIONS = [
+  "Startup Accelerator",
   "Research & Development",
   "CAD Modeling", 
   "Machine Design",
