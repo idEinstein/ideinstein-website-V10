@@ -12,7 +12,7 @@ import { ErrorBoundary } from '@/components/shared/ErrorBoundary'
 import StructuredData from '@/components/shared/StructuredData'
 import GoogleAnalytics from '@/components/analytics/GoogleAnalytics'
 import SessionProvider from '@/components/providers/SessionProvider'
-import CookieConsentWrapper from '@/components/shared/CookieConsentWrapper'
+import CookieConsent from '@/components/shared/CookieConsent'
 import { META } from '@/lib/constants'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -40,13 +40,10 @@ export default function RootLayout({
         <StructuredData type="organization" />
         <StructuredData type="website" />
         <GoogleAnalytics />
-        {/* Mobile debug script - temporarily disabled to fix hydration issues */}
-        {/* {process.env.NODE_ENV === 'development' && (
-          <script 
-            src="/mobile-debug.js" 
-            suppressHydrationWarning
-          />
-        )} */}
+        {/* Production mobile debug - only in development or with debug param */}
+        {process.env.NODE_ENV === 'development' && (
+          <Script src="/mobile-debug.js" strategy="beforeInteractive" />
+        )}
       </head>
       <body className={inter.className}>
         <SessionProvider>
@@ -62,7 +59,9 @@ export default function RootLayout({
                   <ErrorBoundary fallback={<div></div>}>
                     <FloatingContactHub />
                   </ErrorBoundary>
-                  <CookieConsentWrapper language="en" />
+                  <ErrorBoundary fallback={<div></div>}>
+                    <CookieConsent language="en" />
+                  </ErrorBoundary>
                 </div>
               </AudienceProvider>
             </AnimationProvider>

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { X, Settings, Shield, BarChart3, Cookie, Target, Sliders } from 'lucide-react';
+import { X, Settings, Shield, BarChart3, Cookie, Eye, Target, Sliders } from 'lucide-react';
 
 interface CookiePreferences {
   necessary: boolean;
@@ -91,21 +91,21 @@ export default function CookieConsent({ language = 'en' }: CookieConsentProps) {
     preferences: false
   });
   const [hasInteracted, setHasInteracted] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
 
   const t = translations[language];
 
-  // Hydration-safe mounting
+  // Mobile-compatible initialization
   useEffect(() => {
-    setIsMounted(true);
-  }, []);
+    // Use setTimeout as fallback for requestIdleCallback (Safari mobile compatibility)
+    const scheduleInit = (callback: () => void) => {
+      if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+        requestIdleCallback(callback);
+      } else {
+        setTimeout(callback, 1);
+      }
+    };
 
-  // Initialize cookie consent after mounting
-  useEffect(() => {
-    if (!isMounted) return;
-
-    // Use setTimeout to avoid blocking the main thread
-    const timeoutId = setTimeout(() => {
+    scheduleInit(() => {
       try {
         const consent = localStorage.getItem('cookie-consent');
         const lastInteraction = localStorage.getItem('cookie-consent-timestamp');
@@ -129,16 +129,23 @@ export default function CookieConsent({ language = 'en' }: CookieConsentProps) {
         console.warn('Cookie consent initialization error:', error);
         setIsVisible(true);
       }
-    }, 100);
+    });
+  }, []);
 
-    return () => clearTimeout(timeoutId);
-  }, [isMounted]);
-
-  // Apply cookie preferences (hydration-safe)
+  // Apply cookie preferences (mobile-compatible)
   useEffect(() => {
-    if (!hasInteracted || !isMounted) return;
+    if (!hasInteracted) return;
 
-    const timeoutId = setTimeout(() => {
+    // Use setTimeout as fallback for requestIdleCallback (Safari mobile compatibility)
+    const scheduleApply = (callback: () => void) => {
+      if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+        requestIdleCallback(callback);
+      } else {
+        setTimeout(callback, 1);
+      }
+    };
+
+    scheduleApply(() => {
       try {
         // Handle Google Analytics
         if (preferences.analytics) {
@@ -161,10 +168,8 @@ export default function CookieConsent({ language = 'en' }: CookieConsentProps) {
       } catch (error) {
         console.warn('Error applying cookie preferences:', error);
       }
-    }, 50);
-
-    return () => clearTimeout(timeoutId);
-  }, [preferences, hasInteracted, isMounted]);
+    });
+  }, [preferences, hasInteracted]);
 
   const loadGoogleAnalytics = () => {
     // This will be implemented when GA_MEASUREMENT_ID is configured
@@ -215,8 +220,7 @@ export default function CookieConsent({ language = 'en' }: CookieConsentProps) {
     }));
   };
 
-  // Don't render until mounted to prevent hydration mismatch
-  if (!isMounted || !isVisible) return null;
+  if (!isVisible) return null;
 
   return (
     <div className="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm">
@@ -332,9 +336,7 @@ export default function CookieConsent({ language = 'en' }: CookieConsentProps) {
                         <div className="flex items-center justify-between mb-2">
                           <h5 className="font-semibold text-gray-900">{t.analytics.title}</h5>
                           <button
-                            type="button"
                             onClick={() => handleTogglePreference('analytics')}
-                            aria-label={`Toggle ${t.analytics.title}`}
                             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
                               preferences.analytics ? 'bg-blue-600' : 'bg-gray-300'
                             }`}
@@ -363,9 +365,7 @@ export default function CookieConsent({ language = 'en' }: CookieConsentProps) {
                         <div className="flex items-center justify-between mb-2">
                           <h5 className="font-semibold text-gray-900">{t.marketing.title}</h5>
                           <button
-                            type="button"
                             onClick={() => handleTogglePreference('marketing')}
-                            aria-label={`Toggle ${t.marketing.title}`}
                             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
                               preferences.marketing ? 'bg-blue-600' : 'bg-gray-300'
                             }`}
@@ -394,9 +394,7 @@ export default function CookieConsent({ language = 'en' }: CookieConsentProps) {
                         <div className="flex items-center justify-between mb-2">
                           <h5 className="font-semibold text-gray-900">{t.preferences.title}</h5>
                           <button
-                            type="button"
                             onClick={() => handleTogglePreference('preferences')}
-                            aria-label={`Toggle ${t.preferences.title}`}
                             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
                               preferences.preferences ? 'bg-blue-600' : 'bg-gray-300'
                             }`}

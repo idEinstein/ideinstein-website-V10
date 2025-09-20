@@ -1,12 +1,16 @@
 // Server component for structured data - no client-side functionality needed
 // import { CONTACT_INFO } from '@/lib/constants'; // Unused
+import { headers } from 'next/headers';
 
 interface StructuredDataProps {
   type?: 'organization' | 'website' | 'service' | 'article';
   data?: unknown;
 }
 
-export default function StructuredData({ type = 'organization', data }: StructuredDataProps) {
+export default async function StructuredData({ type = 'organization', data }: StructuredDataProps) {
+  // Get nonce from middleware headers for CSP compliance
+  const headersList = await headers();
+  const nonce = headersList.get('x-nonce') || '';
   const getStructuredData = () => {
     switch (type) {
       case 'organization':
@@ -168,10 +172,10 @@ export default function StructuredData({ type = 'organization', data }: Structur
   return (
     <script
       type="application/ld+json"
+      nonce={nonce}
       dangerouslySetInnerHTML={{
         __html: jsonString,
       }}
-      suppressHydrationWarning
     />
   );
 }

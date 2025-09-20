@@ -79,9 +79,9 @@ export default function SoloFounderAdvantageSection() {
               viewport={{ once: true, margin: "-50px" }}
               className="group"
             >
-              <div className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 ease-out hover:scale-[1.02] active:scale-[0.98] active:bg-gray-50 motion-reduce:hover:scale-100 motion-reduce:transition-none h-full flex flex-col p-3 sm:p-4">
+              <div className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 h-full flex flex-col p-3 sm:p-4">
                 <div className="text-center mb-4">
-                  <div className="text-4xl mb-4 group-hover:scale-110 transition-transform duration-300 motion-reduce:group-hover:scale-100 motion-reduce:transition-none">
+                  <div className="text-4xl mb-4 group-hover:scale-110 transition-transform duration-300">
                     {benefit.icon}
                   </div>
                 </div>

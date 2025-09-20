@@ -122,7 +122,7 @@ export default function AudienceSegmentationSection() {
                 selectedAudience === audience.type 
                   ? `${audience.borderColor} border-2` 
                   : 'border-gray-100 hover:border-gray-200'
-              } hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] active:bg-gray-50 transition-all duration-300 ease-out motion-reduce:hover:scale-100 motion-reduce:transition-none`}
+              } hover:shadow-xl hover:scale-105 active:scale-[0.98] sm:active:scale-100 transition-all duration-300`}
               onClick={() => handleAudienceSelect(audience.type)}
             >
               {/* Selection Indicator */}

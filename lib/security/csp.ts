@@ -44,20 +44,17 @@ export function getCSPDirectives(nonce: string, isDevelopment: boolean = false, 
     'script-src': [
       "'self'",
       `'nonce-${nonce}'`,
-      // Allow Google Analytics and essential third-party scripts
-      'https://www.googletagmanager.com',
-      'https://www.google-analytics.com',
-      'https://analytics.google.com',
-      // Next.js production requirements - more permissive for compatibility
-      "'unsafe-eval'", // Required for Next.js dynamic imports and webpack
-      "'unsafe-inline'", // Required for Next.js inline scripts and structured data
-      // Vercel and deployment domains
-      'https://*.vercel.app',
-      'https://*.vercel-insights.com',
-      // Allow localhost and development
-      ...(isDevelopment ? ['localhost:*', 'ws:', 'wss:', 'http:'] : []),
-      // Allow data URIs for inline scripts
-      'data:'
+      // Allow Google Analytics in production
+      ...(isDevelopment ? [] : [
+        'https://www.googletagmanager.com',
+        'https://www.google-analytics.com',
+        'https://analytics.google.com'
+      ]),
+      // Allow localhost in development
+      ...(isDevelopment ? ["'unsafe-eval'", 'localhost:*', 'ws:', 'wss:'] : []),
+      // TEMPORARY: Allow unsafe-inline for application/ld+json scripts
+      // This should be removed once all inline scripts use nonces
+      "'unsafe-inline'"
     ],
     'style-src': [
       "'self'",
@@ -84,27 +81,17 @@ export function getCSPDirectives(nonce: string, isDevelopment: boolean = false, 
     ],
     'connect-src': [
       "'self'",
-      // Allow API connections - more permissive for production compatibility
+      // Allow API connections
       ...(isDevelopment ? ['ws:', 'wss:', 'http:', 'localhost:*'] : []),
       // Analytics connections
       'https://www.google-analytics.com',
       'https://analytics.google.com',
-      'https://www.googletagmanager.com',
       // Zoho API endpoints - India data center only
       'https://accounts.zoho.in',
       'https://www.zohoapis.in',
       'https://campaigns.zoho.in',
       'https://projectsapi.zoho.in',
-      'https://workdrive.zoho.in',
-      // Allow Vercel and deployment domains
-      'https://*.vercel.app',
-      'https://*.vercel-insights.com',
-      'https://*.vercel.com',
-      // Allow blob and data URIs for file uploads
-      'blob:',
-      'data:',
-      // Allow all HTTPS for API flexibility in production
-      'https:'
+      'https://workdrive.zoho.in'
     ],
     'object-src': ["'none'"],
     'base-uri': ["'self'"],
