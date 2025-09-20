@@ -2,9 +2,43 @@
 
 import { useEffect, useState } from 'react'
 
-export default function DebugPage() {
+// Prevent this page from being prerendered to avoid SSR issues
+export const dynamic = 'force-dynamic'
+
+function DebugPage() {
   const [errors, setErrors] = useState<string[]>([])
   const [componentTests, setComponentTests] = useState<Record<string, boolean>>({})
+  const [deviceInfo, setDeviceInfo] = useState<{
+    userAgent: string;
+    screenSize: string;
+    viewportSize: string;
+    touchSupport: string;
+    connection: string;
+  } | null>(null)
+
+  useEffect(() => {
+    // Collect device information safely on client side
+    if (typeof window !== 'undefined' && typeof screen !== 'undefined' && typeof navigator !== 'undefined') {
+      try {
+        setDeviceInfo({
+          userAgent: navigator.userAgent || 'Unknown',
+          screenSize: `${screen.width || 0}x${screen.height || 0}`,
+          viewportSize: `${window.innerWidth || 0}x${window.innerHeight || 0}`,
+          touchSupport: 'ontouchstart' in window ? 'Supported' : 'Not supported',
+          connection: (navigator as any).connection?.effectiveType || 'Unknown'
+        })
+      } catch (error) {
+        console.warn('Error collecting device info:', error)
+        setDeviceInfo({
+          userAgent: 'Error collecting info',
+          screenSize: 'Unknown',
+          viewportSize: 'Unknown',
+          touchSupport: 'Unknown',
+          connection: 'Unknown'
+        })
+      }
+    }
+  }, [])
 
   useEffect(() => {
     // Test each component individually
@@ -31,12 +65,19 @@ export default function DebugPage() {
 
     // Test Tailwind CSS
     testComponent('Tailwind CSS', async () => {
-      const element = document.createElement('div')
-      element.className = 'bg-blue-500'
-      document.body.appendChild(element)
-      const styles = window.getComputedStyle(element)
-      document.body.removeChild(element)
-      return styles.backgroundColor !== ''
+      if (typeof window === 'undefined' || typeof document === 'undefined') {
+        return false
+      }
+      try {
+        const element = document.createElement('div')
+        element.className = 'bg-blue-500'
+        document.body.appendChild(element)
+        const styles = window.getComputedStyle(element)
+        document.body.removeChild(element)
+        return styles.backgroundColor !== ''
+      } catch (error) {
+        return false
+      }
     })
 
   }, [])
@@ -68,24 +109,38 @@ export default function DebugPage() {
 
         <div className="bg-white p-4 rounded-lg shadow">
           <h2 className="text-lg font-semibold mb-4">Device Information</h2>
-          <div className="space-y-2 text-sm">
-            <p><strong>User Agent:</strong> {navigator.userAgent}</p>
-            <p><strong>Screen:</strong> {screen.width}x{screen.height}</p>
-            <p><strong>Viewport:</strong> {window.innerWidth}x{window.innerHeight}</p>
-            <p><strong>Touch:</strong> {'ontouchstart' in window ? 'Supported' : 'Not supported'}</p>
-            <p><strong>Connection:</strong> {(navigator as any).connection?.effectiveType || 'Unknown'}</p>
-          </div>
+          {deviceInfo ? (
+            <div className="space-y-2 text-sm">
+              <p><strong>User Agent:</strong> {deviceInfo.userAgent}</p>
+              <p><strong>Screen:</strong> {deviceInfo.screenSize}</p>
+              <p><strong>Viewport:</strong> {deviceInfo.viewportSize}</p>
+              <p><strong>Touch:</strong> {deviceInfo.touchSupport}</p>
+              <p><strong>Connection:</strong> {deviceInfo.connection}</p>
+            </div>
+          ) : (
+            <div className="text-gray-500">Loading device information...</div>
+          )}
         </div>
 
         <div className="mt-6 space-y-2">
           <button 
-            onClick={() => window.location.href = '/'}
+            type="button"
+            onClick={() => {
+              if (typeof window !== 'undefined') {
+                window.location.href = '/'
+              }
+            }}
             className="w-full bg-blue-500 text-white p-3 rounded-lg hover:bg-blue-600"
           >
             Test Main Homepage
           </button>
           <button 
-            onClick={() => window.location.reload()}
+            type="button"
+            onClick={() => {
+              if (typeof window !== 'undefined') {
+                window.location.reload()
+              }
+            }}
             className="w-full bg-gray-500 text-white p-3 rounded-lg hover:bg-gray-600"
           >
             Reload Debug Page
@@ -95,3 +150,5 @@ export default function DebugPage() {
     </div>
   )
 }
+
+export default DebugPage

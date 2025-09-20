@@ -78,20 +78,20 @@ interface JWTService {
 }
 
 interface JWTPayload {
-  sub: string;           // Subject (user ID)
-  iss: string;           // Issuer
-  aud: string;           // Audience
-  exp: number;           // Expiration time
-  iat: number;           // Issued at
-  jti: string;           // JWT ID
-  role: 'admin' | 'user'; // User role
+  sub: string; // Subject (user ID)
+  iss: string; // Issuer
+  aud: string; // Audience
+  exp: number; // Expiration time
+  iat: number; // Issued at
+  jti: string; // JWT ID
+  role: "admin" | "user"; // User role
   permissions: string[]; // Specific permissions
 }
 
 interface TokenPair {
-  accessToken: string;   // Short-lived (15 minutes)
-  refreshToken: string;  // Long-lived (7 days)
-  expiresIn: number;     // Seconds until expiration
+  accessToken: string; // Short-lived (15 minutes)
+  refreshToken: string; // Long-lived (7 days)
+  expiresIn: number; // Seconds until expiration
 }
 
 // Implementation using jose library
@@ -99,28 +99,28 @@ class JWTServiceImpl implements JWTService {
   private secret: Uint8Array;
   private issuer: string;
   private audience: string;
-  
+
   constructor() {
     this.secret = new TextEncoder().encode(process.env.JWT_SECRET);
-    this.issuer = process.env.JWT_ISSUER || 'ideinstein.com';
-    this.audience = process.env.JWT_AUDIENCE || 'ideinstein-app';
+    this.issuer = process.env.JWT_ISSUER || "ideinstein.com";
+    this.audience = process.env.JWT_AUDIENCE || "ideinstein-app";
   }
-  
+
   async createToken(payload: JWTPayload): Promise<string> {
     return await new SignJWT(payload)
-      .setProtectedHeader({ alg: 'HS256' })
+      .setProtectedHeader({ alg: "HS256" })
       .setIssuedAt()
-      .setExpirationTime('15m')
+      .setExpirationTime("15m")
       .setIssuer(this.issuer)
       .setAudience(this.audience)
       .setJti(crypto.randomUUID())
       .sign(this.secret);
   }
-  
+
   async verifyToken(token: string): Promise<JWTPayload> {
     const { payload } = await jwtVerify(token, this.secret, {
       issuer: this.issuer,
-      audience: this.audience
+      audience: this.audience,
     });
     return payload as JWTPayload;
   }
@@ -139,51 +139,62 @@ interface EncryptionService {
 }
 
 interface EncryptedData {
-  encrypted: string;     // Base64 encoded encrypted data
-  iv: string;           // Initialization vector
-  authTag: string;      // Authentication tag
-  keyId: string;        // Key identifier for rotation
-  algorithm: string;    // Encryption algorithm used
+  encrypted: string; // Base64 encoded encrypted data
+  iv: string; // Initialization vector
+  authTag: string; // Authentication tag
+  keyId: string; // Key identifier for rotation
+  algorithm: string; // Encryption algorithm used
 }
 
 // AES-256-GCM Implementation
 class EncryptionServiceImpl implements EncryptionService {
   private currentKeyId: string;
   private keys: Map<string, CryptoKey>;
-  
+
   async encrypt(plaintext: string, context?: string): Promise<EncryptedData> {
     const key = await this.getCurrentKey();
     const iv = crypto.getRandomValues(new Uint8Array(12));
     const encoder = new TextEncoder();
     const data = encoder.encode(plaintext);
-    
+
     const encrypted = await crypto.subtle.encrypt(
-      { name: 'AES-GCM', iv, additionalData: encoder.encode(context || '') },
+      { name: "AES-GCM", iv, additionalData: encoder.encode(context || "") },
       key,
       data
     );
-    
+
     return {
       encrypted: btoa(String.fromCharCode(...new Uint8Array(encrypted))),
       iv: btoa(String.fromCharCode(...iv)),
-      authTag: '', // Included in encrypted data for AES-GCM
+      authTag: "", // Included in encrypted data for AES-GCM
       keyId: this.currentKeyId,
-      algorithm: 'AES-256-GCM'
+      algorithm: "AES-256-GCM",
     };
   }
-  
-  async decrypt(encryptedData: EncryptedData, context?: string): Promise<string> {
+
+  async decrypt(
+    encryptedData: EncryptedData,
+    context?: string
+  ): Promise<string> {
     const key = await this.getKey(encryptedData.keyId);
-    const iv = new Uint8Array(atob(encryptedData.iv).split('').map(c => c.charCodeAt(0)));
-    const encrypted = new Uint8Array(atob(encryptedData.encrypted).split('').map(c => c.charCodeAt(0)));
+    const iv = new Uint8Array(
+      atob(encryptedData.iv)
+        .split("")
+        .map((c) => c.charCodeAt(0))
+    );
+    const encrypted = new Uint8Array(
+      atob(encryptedData.encrypted)
+        .split("")
+        .map((c) => c.charCodeAt(0))
+    );
     const encoder = new TextEncoder();
-    
+
     const decrypted = await crypto.subtle.decrypt(
-      { name: 'AES-GCM', iv, additionalData: encoder.encode(context || '') },
+      { name: "AES-GCM", iv, additionalData: encoder.encode(context || "") },
       key,
       encrypted
     );
-    
+
     return new TextDecoder().decode(decrypted);
   }
 }
@@ -201,9 +212,9 @@ interface RateLimitService {
 }
 
 interface RateLimitConfig {
-  windowMs: number;      // Time window in milliseconds
-  maxRequests: number;   // Maximum requests per window
-  algorithm: 'sliding' | 'fixed' | 'token-bucket';
+  windowMs: number; // Time window in milliseconds
+  maxRequests: number; // Maximum requests per window
+  algorithm: "sliding" | "fixed" | "token-bucket";
   skipSuccessfulRequests?: boolean;
   skipFailedRequests?: boolean;
   keyGenerator?: (req: NextRequest) => string;
@@ -221,43 +232,59 @@ interface RateLimitResult {
 class RedisRateLimitService implements RateLimitService {
   private redis: Redis;
   private endpointConfigs: Map<string, RateLimitConfig>;
-  
+
   constructor() {
     this.redis = new Redis({
       url: process.env.UPSTASH_REDIS_REST_URL!,
-      token: process.env.UPSTASH_REDIS_REST_TOKEN!
+      token: process.env.UPSTASH_REDIS_REST_TOKEN!,
     });
     this.endpointConfigs = new Map();
   }
-  
-  async checkLimit(key: string, config: RateLimitConfig): Promise<RateLimitResult> {
+
+  async checkLimit(
+    key: string,
+    config: RateLimitConfig
+  ): Promise<RateLimitResult> {
     const ratelimit = new Ratelimit({
       redis: this.redis,
       limiter: this.getLimiter(config),
-      analytics: true
+      analytics: true,
     });
-    
+
     const { success, limit, reset, remaining } = await ratelimit.limit(key);
-    
+
     return {
       allowed: success,
       remaining,
       resetTime: new Date(reset),
       totalHits: limit - remaining,
-      retryAfter: success ? undefined : Math.ceil((reset - Date.now()) / 1000)
+      retryAfter: success ? undefined : Math.ceil((reset - Date.now()) / 1000),
     };
   }
-  
+
   private getLimiter(config: RateLimitConfig) {
     switch (config.algorithm) {
-      case 'sliding':
-        return Ratelimit.slidingWindow(config.maxRequests, `${config.windowMs}ms`);
-      case 'fixed':
-        return Ratelimit.fixedWindow(config.maxRequests, `${config.windowMs}ms`);
-      case 'token-bucket':
-        return Ratelimit.tokenBucket(config.maxRequests, `${config.windowMs}ms`, config.maxRequests);
+      case "sliding":
+        return Ratelimit.slidingWindow(
+          config.maxRequests,
+          `${config.windowMs}ms`
+        );
+      case "fixed":
+        return Ratelimit.fixedWindow(
+          config.maxRequests,
+          `${config.windowMs}ms`
+        );
+      case "token-bucket":
+        return Ratelimit.tokenBucket(
+          config.maxRequests,
+          `${config.windowMs}ms`,
+          config.maxRequests
+        );
       default:
-        return Ratelimit.slidingWindow(config.maxRequests, `${config.windowMs}ms`);
+        return Ratelimit.slidingWindow(
+          config.maxRequests,
+          `${config.windowMs}ms`
+        );
     }
   }
 }
@@ -298,80 +325,87 @@ class SecureZohoClient implements ZohoSecurityService {
   private tokenExpiry: Date | null = null;
   private rateLimiter: RateLimitService;
   private encryptionService: EncryptionService;
-  
+
   constructor(config: ZohoSecurityConfig) {
     this.config = config;
     this.rateLimiter = new RedisRateLimitService();
     this.encryptionService = new EncryptionServiceImpl();
   }
-  
+
   async makeSecureRequest<T>(endpoint: string, data?: any): Promise<T> {
     // Check rate limits
     const rateLimitResult = await this.rateLimiter.checkLimit(
       `zoho:${endpoint}`,
       this.config.rateLimitConfig
     );
-    
+
     if (!rateLimitResult.allowed) {
-      throw new ZohoRateLimitError('Rate limit exceeded', rateLimitResult.retryAfter);
+      throw new ZohoRateLimitError(
+        "Rate limit exceeded",
+        rateLimitResult.retryAfter
+      );
     }
-    
+
     // Ensure valid token
     await this.ensureValidToken();
-    
+
     // Make request with retry logic
     return await this.retryRequest(async () => {
       const response = await fetch(`${this.config.baseUrl}${endpoint}`, {
-        method: data ? 'POST' : 'GET',
+        method: data ? "POST" : "GET",
         headers: {
-          'Authorization': `Bearer ${this.accessToken}`,
-          'Content-Type': 'application/json',
-          'User-Agent': 'IdEinstein-SecureClient/1.0'
+          Authorization: `Bearer ${this.accessToken}`,
+          "Content-Type": "application/json",
+          "User-Agent": "IdEinstein-SecureClient/1.0",
         },
-        body: data ? JSON.stringify(data) : undefined
+        body: data ? JSON.stringify(data) : undefined,
       });
-      
+
       if (!response.ok) {
         throw new ZohoAPIError(`HTTP ${response.status}`, response.statusText);
       }
-      
+
       const result = await response.json();
-      
+
       // Validate response structure
       if (!this.validateResponse(result)) {
-        throw new ZohoValidationError('Invalid response structure');
+        throw new ZohoValidationError("Invalid response structure");
       }
-      
+
       return result;
     });
   }
-  
+
   private async retryRequest<T>(operation: () => Promise<T>): Promise<T> {
     let lastError: Error;
-    
-    for (let attempt = 0; attempt <= this.config.retryConfig.maxRetries; attempt++) {
+
+    for (
+      let attempt = 0;
+      attempt <= this.config.retryConfig.maxRetries;
+      attempt++
+    ) {
       try {
         return await operation();
       } catch (error) {
         lastError = error as Error;
-        
+
         if (attempt === this.config.retryConfig.maxRetries) {
           break;
         }
-        
+
         if (!this.isRetryableError(error)) {
           throw error;
         }
-        
+
         const backoffMs = Math.min(
           Math.pow(this.config.retryConfig.backoffMultiplier, attempt) * 1000,
           this.config.retryConfig.maxBackoffMs
         );
-        
-        await new Promise(resolve => setTimeout(resolve, backoffMs));
+
+        await new Promise((resolve) => setTimeout(resolve, backoffMs));
       }
     }
-    
+
     throw lastError!;
   }
 }
@@ -407,55 +441,55 @@ interface VercelSecurityConfig {
 // Vercel Configuration Manager
 class VercelSecurityManager {
   private config: VercelSecurityConfig;
-  
+
   async configureWAF(): Promise<void> {
     // Configure Web Application Firewall rules
     const wafConfig = {
       rules: [
-        { id: 'owasp-top-10', enabled: true },
-        { id: 'sql-injection', enabled: true },
-        { id: 'xss-protection', enabled: true },
-        { id: 'csrf-protection', enabled: true }
+        { id: "owasp-top-10", enabled: true },
+        { id: "sql-injection", enabled: true },
+        { id: "xss-protection", enabled: true },
+        { id: "csrf-protection", enabled: true },
       ],
       customRules: [
         {
-          name: 'admin-access-restriction',
+          name: "admin-access-restriction",
           condition: 'path.startsWith("/admin")',
-          action: 'challenge',
-          priority: 1
-        }
-      ]
+          action: "challenge",
+          priority: 1,
+        },
+      ],
     };
-    
+
     // Apply configuration via Vercel API
-    await this.applyVercelConfig('waf', wafConfig);
+    await this.applyVercelConfig("waf", wafConfig);
   }
-  
+
   async configureDDoSProtection(): Promise<void> {
     const ddosConfig = {
       enabled: true,
       challengeMode: true,
       threshold: 1000, // requests per minute
-      mitigationStrategies: ['rate-limit', 'challenge', 'block']
+      mitigationStrategies: ["rate-limit", "challenge", "block"],
     };
-    
-    await this.applyVercelConfig('ddos', ddosConfig);
+
+    await this.applyVercelConfig("ddos", ddosConfig);
   }
-  
+
   async configureAccessControl(): Promise<void> {
     const accessConfig = {
       previewDeployments: {
-        protection: 'password',
-        password: process.env.VERCEL_PREVIEW_PASSWORD
+        protection: "password",
+        password: process.env.VERCEL_PREVIEW_PASSWORD,
       },
       stagingEnvironment: {
-        protection: 'password',
-        password: process.env.VERCEL_STAGING_PASSWORD
+        protection: "password",
+        password: process.env.VERCEL_STAGING_PASSWORD,
       },
-      trustedIPs: process.env.VERCEL_TRUSTED_IPS?.split(',') || []
+      trustedIPs: process.env.VERCEL_TRUSTED_IPS?.split(",") || [],
     };
-    
-    await this.applyVercelConfig('access', accessConfig);
+
+    await this.applyVercelConfig("access", accessConfig);
   }
 }
 ```
@@ -468,7 +502,7 @@ class VercelSecurityManager {
 interface JWTTokenRecord {
   id: string;
   userId: string;
-  tokenType: 'access' | 'refresh';
+  tokenType: "access" | "refresh";
   issuedAt: Date;
   expiresAt: Date;
   revokedAt?: Date;
@@ -480,7 +514,7 @@ interface JWTTokenRecord {
 interface TokenBlacklist {
   tokenId: string;
   revokedAt: Date;
-  reason: 'logout' | 'security' | 'expired' | 'rotation';
+  reason: "logout" | "security" | "expired" | "rotation";
   expiresAt: Date; // When to remove from blacklist
 }
 ```
@@ -490,12 +524,12 @@ interface TokenBlacklist {
 ```typescript
 interface EncryptionKey {
   id: string;
-  algorithm: 'AES-256-GCM';
+  algorithm: "AES-256-GCM";
   keyData: string; // Encrypted key material
   createdAt: Date;
   rotatedAt?: Date;
-  status: 'active' | 'rotating' | 'deprecated';
-  usage: 'primary' | 'secondary' | 'backup';
+  status: "active" | "rotating" | "deprecated";
+  usage: "primary" | "secondary" | "backup";
 }
 
 interface EncryptionContext {
@@ -586,24 +620,28 @@ interface RateLimitMetrics {
 ## Implementation Phases
 
 ### Phase 1: Core Security (Week 1-2)
+
 1. JWT Authentication System implementation
 2. Data Encryption Service development
 3. Basic Redis Rate Limiting setup
 4. Security testing framework
 
 ### Phase 2: Integration Security (Week 3-4)
+
 1. Enhanced Zoho Security Layer
 2. Advanced Rate Limiting features
 3. Vercel Security Configuration
 4. Security monitoring integration
 
 ### Phase 3: Compliance & Testing (Week 5-6)
+
 1. Automated Security Testing pipeline
 2. Compliance documentation generation
 3. Incident Response System
 4. Performance optimization
 
 ### Phase 4: Certification (Week 7-8)
+
 1. Third-party security assessment
 2. SOC2 compliance preparation
 3. Security training and documentation
