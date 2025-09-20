@@ -262,7 +262,7 @@ function BasicFallbackPage() {
             </div>
           </div>
           <div className="mt-8 text-sm text-gray-500">
-            <p>Having issues? Try <a href="/?debug=no-csp" className="text-blue-600 underline">disabling security features</a> or <a href="/debug" className="text-blue-600 underline">visit our debug page</a></p>
+            <p>Having issues? Try <Link href="/?debug=no-csp" className="text-blue-600 underline">disabling security features</Link> or <Link href="/debug" className="text-blue-600 underline">visit our debug page</Link></p>
           </div>
         </div>
       </div>
@@ -277,7 +277,7 @@ function LoadingPage() {
       <div className="text-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
         <p className="text-gray-600">Loading IdEinstein Engineering...</p>
-        <p className="text-sm text-gray-400 mt-2">If this takes too long, <a href="/?debug=simple" className="text-blue-600 underline">try simple mode</a></p>
+        <p className="text-sm text-gray-400 mt-2">If this takes too long, <Link href="/?debug=simple" className="text-blue-600 underline">try simple mode</Link></p>
       </div>
     </div>
   )

@@ -48,7 +48,7 @@ export default function DebugPage() {
 
       // Test component loading
       try {
-        const { default: TestComponent } = await import('@/components/shared/ErrorBoundary')
+        const { ErrorBoundary } = await import('@/components/shared/ErrorBoundary')
         results.components = 'Loading OK'
       } catch (e) {
         results.components = `Error: ${e}`
