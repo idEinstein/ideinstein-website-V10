@@ -44,17 +44,16 @@ export function getCSPDirectives(nonce: string, isDevelopment: boolean = false, 
     'script-src': [
       "'self'",
       `'nonce-${nonce}'`,
-      // Allow Google Analytics in production
-      ...(isDevelopment ? [] : [
-        'https://www.googletagmanager.com',
-        'https://www.google-analytics.com',
-        'https://analytics.google.com'
-      ]),
+      // Allow Google Analytics and essential third-party scripts
+      'https://www.googletagmanager.com',
+      'https://www.google-analytics.com',
+      'https://analytics.google.com',
+      // Allow Next.js chunks and webpack
+      "'unsafe-eval'", // Required for Next.js in production for dynamic imports
       // Allow localhost in development
-      ...(isDevelopment ? ["'unsafe-eval'", 'localhost:*', 'ws:', 'wss:'] : []),
-      // TEMPORARY: Allow unsafe-inline for application/ld+json scripts
-      // This should be removed once all inline scripts use nonces
-      "'unsafe-inline'"
+      ...(isDevelopment ? ['localhost:*', 'ws:', 'wss:'] : []),
+      // Allow inline scripts for structured data and essential functionality
+      "'unsafe-inline'" // Required for Next.js and structured data
     ],
     'style-src': [
       "'self'",
@@ -86,12 +85,16 @@ export function getCSPDirectives(nonce: string, isDevelopment: boolean = false, 
       // Analytics connections
       'https://www.google-analytics.com',
       'https://analytics.google.com',
+      'https://www.googletagmanager.com',
       // Zoho API endpoints - India data center only
       'https://accounts.zoho.in',
       'https://www.zohoapis.in',
       'https://campaigns.zoho.in',
       'https://projectsapi.zoho.in',
-      'https://workdrive.zoho.in'
+      'https://workdrive.zoho.in',
+      // Allow Vercel and deployment domains
+      'https://*.vercel.app',
+      'https://*.vercel-insights.com'
     ],
     'object-src': ["'none'"],
     'base-uri': ["'self'"],

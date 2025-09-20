@@ -91,21 +91,21 @@ export default function CookieConsent({ language = 'en' }: CookieConsentProps) {
     preferences: false
   });
   const [hasInteracted, setHasInteracted] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
 
   const t = translations[language];
 
-  // Mobile-compatible initialization
+  // Hydration-safe mounting
   useEffect(() => {
-    // Use setTimeout as fallback for requestIdleCallback (Safari mobile compatibility)
-    const scheduleInit = (callback: () => void) => {
-      if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
-        requestIdleCallback(callback);
-      } else {
-        setTimeout(callback, 1);
-      }
-    };
+    setIsMounted(true);
+  }, []);
 
-    scheduleInit(() => {
+  // Initialize cookie consent after mounting
+  useEffect(() => {
+    if (!isMounted) return;
+
+    // Use setTimeout to avoid blocking the main thread
+    const timeoutId = setTimeout(() => {
       try {
         const consent = localStorage.getItem('cookie-consent');
         const lastInteraction = localStorage.getItem('cookie-consent-timestamp');
@@ -129,23 +129,16 @@ export default function CookieConsent({ language = 'en' }: CookieConsentProps) {
         console.warn('Cookie consent initialization error:', error);
         setIsVisible(true);
       }
-    });
-  }, []);
+    }, 100);
 
-  // Apply cookie preferences (mobile-compatible)
+    return () => clearTimeout(timeoutId);
+  }, [isMounted]);
+
+  // Apply cookie preferences (hydration-safe)
   useEffect(() => {
-    if (!hasInteracted) return;
+    if (!hasInteracted || !isMounted) return;
 
-    // Use setTimeout as fallback for requestIdleCallback (Safari mobile compatibility)
-    const scheduleApply = (callback: () => void) => {
-      if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
-        requestIdleCallback(callback);
-      } else {
-        setTimeout(callback, 1);
-      }
-    };
-
-    scheduleApply(() => {
+    const timeoutId = setTimeout(() => {
       try {
         // Handle Google Analytics
         if (preferences.analytics) {
@@ -168,8 +161,10 @@ export default function CookieConsent({ language = 'en' }: CookieConsentProps) {
       } catch (error) {
         console.warn('Error applying cookie preferences:', error);
       }
-    });
-  }, [preferences, hasInteracted]);
+    }, 50);
+
+    return () => clearTimeout(timeoutId);
+  }, [preferences, hasInteracted, isMounted]);
 
   const loadGoogleAnalytics = () => {
     // This will be implemented when GA_MEASUREMENT_ID is configured
@@ -220,7 +215,8 @@ export default function CookieConsent({ language = 'en' }: CookieConsentProps) {
     }));
   };
 
-  if (!isVisible) return null;
+  // Don't render until mounted to prevent hydration mismatch
+  if (!isMounted || !isVisible) return null;
 
   return (
     <div className="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm">

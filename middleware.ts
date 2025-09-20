@@ -23,24 +23,36 @@ function applyRateLimit(key: string, max = RATE_PER_MIN, windowMs = 60_000) {
 
 
 async function verifyHmac(req: NextRequest) {
-  // TEMPORARY FIX: Disable HMAC validation to restore functionality
-  // TODO: Implement proper HMAC signature generation in frontend
-  console.log('🔧 HMAC validation temporarily disabled for:', req.nextUrl.pathname);
-  return true;
+  // Skip HMAC validation in development or for admin routes
+  if (process.env.NODE_ENV === 'development' || req.nextUrl.pathname.startsWith('/api/admin')) {
+    return true;
+  }
   
-  // Original HMAC validation (commented out for now)
-  /*
-  if (!HMAC_SECRET) return true; // allow in dev
+  // Skip HMAC validation if no secret is configured
+  if (!HMAC_SECRET) {
+    console.warn('⚠️ HMAC_SECRET not configured - skipping validation');
+    return true;
+  }
+  
   if (req.method !== "POST") return true;
   
-  const sig = req.headers.get("x-signature") || "";
-  const body = await req.clone().text();
-  const enc = new TextEncoder();
-  const key = await crypto.subtle.importKey("raw", enc.encode(HMAC_SECRET), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
-  const mac = await crypto.subtle.sign("HMAC", key, enc.encode(body));
-  const digest = Buffer.from(new Uint8Array(mac)).toString("hex");
-  return sig === digest;
-  */
+  try {
+    const sig = req.headers.get("x-signature") || "";
+    if (!sig) {
+      console.warn('⚠️ Missing HMAC signature for POST request:', req.nextUrl.pathname);
+      return false;
+    }
+    
+    const body = await req.clone().text();
+    const enc = new TextEncoder();
+    const key = await crypto.subtle.importKey("raw", enc.encode(HMAC_SECRET), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+    const mac = await crypto.subtle.sign("HMAC", key, enc.encode(body));
+    const digest = Buffer.from(new Uint8Array(mac)).toString("hex");
+    return sig === digest;
+  } catch (error) {
+    console.error('HMAC validation error:', error);
+    return false;
+  }
 }
 
 function logSecurityEvent(type: string, details: any, request: NextRequest) {
@@ -122,13 +134,13 @@ export async function middleware(req: NextRequest) {
   res.headers.set("x-correlation-id", cid);
   res.headers.set("x-nonce", cspConfig.nonce);
   
-  // Apply Content Security Policy (temporarily disabled for production debugging)
-  if (req.nextUrl.searchParams.get('debug') === 'no-csp' || IS_PRODUCTION) {
-    console.log('🔧 CSP disabled for production debugging');
-    // Temporarily disable CSP in production to fix white screen issue
+  // Apply Content Security Policy
+  if (req.nextUrl.searchParams.get('debug') === 'no-csp') {
+    console.log('🔧 CSP disabled via debug parameter');
   } else if (cspConfig.reportOnly && !IS_PRODUCTION) {
     res.headers.set("Content-Security-Policy-Report-Only", cspHeader);
   } else {
+    // Enable CSP in production with proper configuration
     res.headers.set("Content-Security-Policy", cspHeader);
   }
   

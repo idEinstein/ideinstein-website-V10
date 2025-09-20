@@ -12,7 +12,7 @@ import { ErrorBoundary } from '@/components/shared/ErrorBoundary'
 import StructuredData from '@/components/shared/StructuredData'
 import GoogleAnalytics from '@/components/analytics/GoogleAnalytics'
 import SessionProvider from '@/components/providers/SessionProvider'
-import CookieConsent from '@/components/shared/CookieConsent'
+import CookieConsentWrapper from '@/components/shared/CookieConsentWrapper'
 import { META } from '@/lib/constants'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -62,9 +62,7 @@ export default function RootLayout({
                   <ErrorBoundary fallback={<div></div>}>
                     <FloatingContactHub />
                   </ErrorBoundary>
-                  <ErrorBoundary fallback={<div></div>}>
-                    <CookieConsent language="en" />
-                  </ErrorBoundary>
+                  <CookieConsentWrapper language="en" />
                 </div>
               </AudienceProvider>
             </AnimationProvider>
