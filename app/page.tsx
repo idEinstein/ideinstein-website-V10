@@ -1,23 +1,51 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import StaticHeroSection from '@/components/home/StaticHeroSection'
-import SoloFounderAdvantageSection from '@/components/home/SoloFounderAdvantageSection'
-import AudienceSegmentationSection from '@/components/home/AudienceSegmentationSection'
-import ConditionalContentRenderer from '@/components/home/ConditionalContentRenderer'
-import StartupPathContent from '@/components/home/StartupPathContent'
-import EnterprisePathContent from '@/components/home/EnterprisePathContent'
-import DualCTASection from '@/components/home/DualCTASection'
-import { initializeHomepageAnalytics } from '@/lib/utils/homepage-analytics'
-import { initializePerformanceOptimizations } from '@/lib/utils/performance-optimization'
-// import { initializeIntegrationTesting } from '@/lib/utils/integration-testing' // Disabled - old A/B testing system
 import { HeroErrorBoundary, ErrorBoundary } from '@/components/shared/ErrorBoundary'
 
+// Lazy load components to prevent blocking
+import dynamic from 'next/dynamic'
 
-export default function HomePage() {
+const StaticHeroSection = dynamic(() => import('@/components/home/StaticHeroSection'), {
+  loading: () => <div className="h-96 bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 animate-pulse" />,
+  ssr: true
+})
+
+const SoloFounderAdvantageSection = dynamic(() => import('@/components/home/SoloFounderAdvantageSection'), {
+  loading: () => <div className="h-64 bg-gray-50 animate-pulse" />,
+  ssr: true
+})
+
+const AudienceSegmentationSection = dynamic(() => import('@/components/home/AudienceSegmentationSection'), {
+  loading: () => <div className="h-64 bg-white animate-pulse" />,
+  ssr: true
+})
+
+const ConditionalContentRenderer = dynamic(() => import('@/components/home/ConditionalContentRenderer'), {
+  loading: () => <div className="h-64 bg-gray-50 animate-pulse" />,
+  ssr: true
+})
+
+const StartupPathContent = dynamic(() => import('@/components/home/StartupPathContent'), {
+  loading: () => <div className="h-32 bg-blue-50 animate-pulse" />,
+  ssr: true
+})
+
+const EnterprisePathContent = dynamic(() => import('@/components/home/EnterprisePathContent'), {
+  loading: () => <div className="h-32 bg-green-50 animate-pulse" />,
+  ssr: true
+})
+
+const DualCTASection = dynamic(() => import('@/components/home/DualCTASection'), {
+  loading: () => <div className="h-32 bg-blue-600 animate-pulse" />,
+  ssr: true
+})
+
+// Simplified HomePage component with better error handling
+function HomePageContent() {
   const searchParams = useSearchParams()
   const [debugMode, setDebugMode] = useState(false)
   const [errors, setErrors] = useState<string[]>([])
@@ -25,36 +53,28 @@ export default function HomePage() {
   const [hasError, setHasError] = useState(false)
 
   useEffect(() => {
+    let mounted = true
+    
     try {
-      // Check for debug parameters
+      // Check for debug parameters safely
       const isDebug = searchParams?.get('debug')
-      setDebugMode(!!isDebug)
+      if (mounted) setDebugMode(!!isDebug)
 
-      // Enhanced error tracking for production debugging
-      const originalError = console.error
-      console.error = (...args) => {
-        const errorMsg = args.join(' ')
-        setErrors(prev => [...prev, errorMsg])
-        originalError(...args)
-        
-        // If critical error, show fallback
-        if (errorMsg.includes('ChunkLoadError') || errorMsg.includes('Loading chunk')) {
-          setHasError(true)
-        }
-      }
-
-      // Safer initialization with timeout
-      const initializeFunctions = async () => {
+      // Simplified initialization with better error handling
+      const initializePage = async () => {
         try {
+          // Only initialize analytics if not disabled
           if (!isDebug || isDebug !== 'no-analytics') {
-            // Wrap in try-catch to prevent blocking
+            // Dynamically import and initialize analytics
             try {
+              const { initializeHomepageAnalytics } = await import('@/lib/utils/homepage-analytics')
               initializeHomepageAnalytics()
             } catch (e) {
               console.warn('Analytics init failed:', e)
             }
             
             try {
+              const { initializePerformanceOptimizations } = await import('@/lib/utils/performance-optimization')
               initializePerformanceOptimizations()
             } catch (e) {
               console.warn('Performance init failed:', e)
@@ -62,27 +82,29 @@ export default function HomePage() {
           }
         } catch (error) {
           console.warn('Initialization error:', error)
-          setErrors(prev => [...prev, `Init error: ${error}`])
+          if (mounted) setErrors(prev => [...prev, `Init error: ${error}`])
         } finally {
-          setIsLoading(false)
+          if (mounted) setIsLoading(false)
         }
       }
       
       // Add timeout to prevent infinite loading
       const timeoutId = setTimeout(() => {
-        setIsLoading(false)
-      }, 3000)
+        if (mounted) setIsLoading(false)
+      }, 2000) // Reduced timeout
       
-      initializeFunctions()
+      initializePage()
 
       return () => {
-        console.error = originalError
+        mounted = false
         clearTimeout(timeoutId)
       }
     } catch (error) {
       console.error('HomePage initialization error:', error)
-      setHasError(true)
-      setIsLoading(false)
+      if (mounted) {
+        setHasError(true)
+        setIsLoading(false)
+      }
     }
   }, [searchParams])
 
@@ -90,44 +112,12 @@ export default function HomePage() {
 
   // Error fallback - show basic content if critical error
   if (hasError) {
-    return (
-      <div className="min-h-screen bg-white">
-        <div className="max-w-4xl mx-auto px-4 py-16">
-          <div className="text-center">
-            <h1 className="text-4xl font-bold text-gray-900 mb-6">IdEinstein Engineering</h1>
-            <p className="text-xl text-gray-600 mb-8">Professional 3D Printing & CAD Design Services</p>
-            <div className="grid md:grid-cols-2 gap-8 max-w-2xl mx-auto">
-              <div className="bg-blue-50 p-6 rounded-lg">
-                <h2 className="text-lg font-semibold text-blue-900 mb-3">For Startups</h2>
-                <p className="text-blue-700 mb-4">Rapid prototyping and design services</p>
-                <a href="/contact" className="inline-block bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
-                  Get Started
-                </a>
-              </div>
-              <div className="bg-green-50 p-6 rounded-lg">
-                <h2 className="text-lg font-semibold text-green-900 mb-3">For Enterprise</h2>
-                <p className="text-green-700 mb-4">Production-scale manufacturing solutions</p>
-                <a href="/contact" className="inline-block bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700">
-                  Contact Us
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    )
+    return <BasicFallbackPage />
   }
 
-  // Loading state
+  // Loading state - simplified
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
-        </div>
-      </div>
-    )
+    return <LoadingPage />
   }
 
   // Debug mode - simplified version
@@ -222,33 +212,82 @@ export default function HomePage() {
       </HeroErrorBoundary>
       
       {/* 2. Solo Founder Advantages with Competitive Comparison + Strong CTA - Universal appeal */}
-      <ErrorBoundary>
+      <ErrorBoundary fallback={<div className="h-32 bg-gray-50" />}>
         <SoloFounderAdvantageSection />
       </ErrorBoundary>
       
       {/* 3. Audience Segmentation - Let users choose their path with enhanced benefits */}
-      <ErrorBoundary>
-        <div data-lazy-load="audience-segmentation">
-          <AudienceSegmentationSection />
-        </div>
+      <ErrorBoundary fallback={<div className="h-32 bg-white" />}>
+        <AudienceSegmentationSection />
       </ErrorBoundary>
       
       {/* 4. Conditional Content - Tailored to selected audience */}
-      <ErrorBoundary>
-        <div data-lazy-load="conditional-content">
-          <ConditionalContentRenderer
-            startupContent={<StartupPathContent />}
-            enterpriseContent={<EnterprisePathContent />}
-          />
-        </div>
+      <ErrorBoundary fallback={<div className="h-32 bg-gray-50" />}>
+        <ConditionalContentRenderer
+          startupContent={<StartupPathContent />}
+          enterpriseContent={<EnterprisePathContent />}
+        />
       </ErrorBoundary>
       
       {/* 5. Final CTA - Audience-aware conversion actions */}
-      <ErrorBoundary>
-        <div data-lazy-load="final-cta">
-          <DualCTASection />
-        </div>
+      <ErrorBoundary fallback={<div className="h-16 bg-blue-600" />}>
+        <DualCTASection />
       </ErrorBoundary>
     </motion.div>
   );
+}
+
+// Basic fallback page that always works
+function BasicFallbackPage() {
+  return (
+    <div className="min-h-screen bg-white">
+      <div className="max-w-4xl mx-auto px-4 py-16">
+        <div className="text-center">
+          <h1 className="text-4xl font-bold text-gray-900 mb-6">IdEinstein Engineering</h1>
+          <p className="text-xl text-gray-600 mb-8">Professional 3D Printing & CAD Design Services</p>
+          <div className="grid md:grid-cols-2 gap-8 max-w-2xl mx-auto">
+            <div className="bg-blue-50 p-6 rounded-lg">
+              <h2 className="text-lg font-semibold text-blue-900 mb-3">For Startups</h2>
+              <p className="text-blue-700 mb-4">Rapid prototyping and design services</p>
+              <a href="/contact" className="inline-block bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                Get Started
+              </a>
+            </div>
+            <div className="bg-green-50 p-6 rounded-lg">
+              <h2 className="text-lg font-semibold text-green-900 mb-3">For Enterprise</h2>
+              <p className="text-green-700 mb-4">Production-scale manufacturing solutions</p>
+              <a href="/contact" className="inline-block bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors">
+                Contact Us
+              </a>
+            </div>
+          </div>
+          <div className="mt-8 text-sm text-gray-500">
+            <p>Having issues? Try <a href="/?debug=no-csp" className="text-blue-600 underline">disabling security features</a> or <a href="/debug" className="text-blue-600 underline">visit our debug page</a></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Loading page component
+function LoadingPage() {
+  return (
+    <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+        <p className="text-gray-600">Loading IdEinstein Engineering...</p>
+        <p className="text-sm text-gray-400 mt-2">If this takes too long, <a href="/?debug=simple" className="text-blue-600 underline">try simple mode</a></p>
+      </div>
+    </div>
+  )
+}
+
+// Main export with Suspense wrapper
+export default function HomePage() {
+  return (
+    <Suspense fallback={<LoadingPage />}>
+      <HomePageContent />
+    </Suspense>
+  )
 }

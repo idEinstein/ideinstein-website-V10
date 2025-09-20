@@ -48,12 +48,16 @@ export function getCSPDirectives(nonce: string, isDevelopment: boolean = false, 
       'https://www.googletagmanager.com',
       'https://www.google-analytics.com',
       'https://analytics.google.com',
-      // Allow Next.js chunks and webpack
-      "'unsafe-eval'", // Required for Next.js in production for dynamic imports
-      // Allow localhost in development
-      ...(isDevelopment ? ['localhost:*', 'ws:', 'wss:'] : []),
-      // Allow inline scripts for structured data and essential functionality
-      "'unsafe-inline'" // Required for Next.js and structured data
+      // Next.js production requirements - more permissive for compatibility
+      "'unsafe-eval'", // Required for Next.js dynamic imports and webpack
+      "'unsafe-inline'", // Required for Next.js inline scripts and structured data
+      // Vercel and deployment domains
+      'https://*.vercel.app',
+      'https://*.vercel-insights.com',
+      // Allow localhost and development
+      ...(isDevelopment ? ['localhost:*', 'ws:', 'wss:', 'http:'] : []),
+      // Allow data URIs for inline scripts
+      'data:'
     ],
     'style-src': [
       "'self'",
@@ -80,7 +84,7 @@ export function getCSPDirectives(nonce: string, isDevelopment: boolean = false, 
     ],
     'connect-src': [
       "'self'",
-      // Allow API connections
+      // Allow API connections - more permissive for production compatibility
       ...(isDevelopment ? ['ws:', 'wss:', 'http:', 'localhost:*'] : []),
       // Analytics connections
       'https://www.google-analytics.com',
@@ -94,7 +98,13 @@ export function getCSPDirectives(nonce: string, isDevelopment: boolean = false, 
       'https://workdrive.zoho.in',
       // Allow Vercel and deployment domains
       'https://*.vercel.app',
-      'https://*.vercel-insights.com'
+      'https://*.vercel-insights.com',
+      'https://*.vercel.com',
+      // Allow blob and data URIs for file uploads
+      'blob:',
+      'data:',
+      // Allow all HTTPS for API flexibility in production
+      'https:'
     ],
     'object-src': ["'none'"],
     'base-uri': ["'self'"],

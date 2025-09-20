@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { X, Settings, Shield, BarChart3, Cookie, Eye, Target, Sliders } from 'lucide-react';
+import { X, Settings, Shield, BarChart3, Cookie, Target, Sliders } from 'lucide-react';
 
 interface CookiePreferences {
   necessary: boolean;
@@ -332,7 +332,9 @@ export default function CookieConsent({ language = 'en' }: CookieConsentProps) {
                         <div className="flex items-center justify-between mb-2">
                           <h5 className="font-semibold text-gray-900">{t.analytics.title}</h5>
                           <button
+                            type="button"
                             onClick={() => handleTogglePreference('analytics')}
+                            aria-label={`Toggle ${t.analytics.title}`}
                             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
                               preferences.analytics ? 'bg-blue-600' : 'bg-gray-300'
                             }`}
@@ -361,7 +363,9 @@ export default function CookieConsent({ language = 'en' }: CookieConsentProps) {
                         <div className="flex items-center justify-between mb-2">
                           <h5 className="font-semibold text-gray-900">{t.marketing.title}</h5>
                           <button
+                            type="button"
                             onClick={() => handleTogglePreference('marketing')}
+                            aria-label={`Toggle ${t.marketing.title}`}
                             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
                               preferences.marketing ? 'bg-blue-600' : 'bg-gray-300'
                             }`}
@@ -390,7 +394,9 @@ export default function CookieConsent({ language = 'en' }: CookieConsentProps) {
                         <div className="flex items-center justify-between mb-2">
                           <h5 className="font-semibold text-gray-900">{t.preferences.title}</h5>
                           <button
+                            type="button"
                             onClick={() => handleTogglePreference('preferences')}
+                            aria-label={`Toggle ${t.preferences.title}`}
                             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
                               preferences.preferences ? 'bg-blue-600' : 'bg-gray-300'
                             }`}

@@ -134,14 +134,24 @@ export async function middleware(req: NextRequest) {
   res.headers.set("x-correlation-id", cid);
   res.headers.set("x-nonce", cspConfig.nonce);
   
-  // Apply Content Security Policy
-  if (req.nextUrl.searchParams.get('debug') === 'no-csp') {
+  // Apply Content Security Policy with better debugging
+  const debugParam = req.nextUrl.searchParams.get('debug');
+  
+  if (debugParam === 'no-csp') {
     console.log('🔧 CSP disabled via debug parameter');
-  } else if (cspConfig.reportOnly && !IS_PRODUCTION) {
+    // Add debug header to indicate CSP is disabled
+    res.headers.set("X-CSP-Status", "disabled-debug");
+  } else if (debugParam === 'csp-report-only') {
     res.headers.set("Content-Security-Policy-Report-Only", cspHeader);
+    res.headers.set("X-CSP-Status", "report-only-debug");
+  } else if (!IS_PRODUCTION || debugParam === 'csp-report') {
+    // Use report-only mode in development or when debugging
+    res.headers.set("Content-Security-Policy-Report-Only", cspHeader);
+    res.headers.set("X-CSP-Status", "report-only");
   } else {
     // Enable CSP in production with proper configuration
     res.headers.set("Content-Security-Policy", cspHeader);
+    res.headers.set("X-CSP-Status", "enforced");
   }
   
   // Apply comprehensive security headers

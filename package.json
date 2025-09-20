@@ -26,6 +26,8 @@
     "deploy:ready": "npm run health:check && npm run deploy:check",
     "test:zoho": "tsx scripts/test-zoho-connection.ts",
     "zoho:refresh": "node scripts/fix-zoho-tokens.js",
+    "fix:white-screen": "tsx scripts/fix-white-screen.ts",
+    "debug:production": "npm run health:check && npm run fix:white-screen",
     "postinstall": "echo 'Dependencies installed successfully'"
   },
   "dependencies": {
